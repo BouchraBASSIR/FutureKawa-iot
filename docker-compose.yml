@@ -2,49 +2,77 @@ version: '3.8'
 
 services:
 
-  # Base de données PostgreSQL
-  postgres:
+  # =========================================================================
+  # INFRASTRUCTURE DE BASE (PAYS : BRÉSIL)
+  # =========================================================================
+
+  # Base de données PostgreSQL pour le pays "Brésil"
+  postgres-bresil:
     image: postgres:15
-    container_name: futurekawa-db
+    container_name: futurekawa-db-bresil
     environment:
       POSTGRES_USER: futurekawa
       POSTGRES_PASSWORD: futurekawa123
-      POSTGRES_DB: futurekawa
+      POSTGRES_DB: futurekawa_bresil
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_bresil_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U futurekawa"]
+      test: ["CMD-SHELL", "pg_isready -U futurekawa -d futurekawa_bresil"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # Broker MQTT Mosquitto
-  mosquitto:
-    image: eclipse-mosquitto:2
-    container_name: futurekawa-mqtt
-    ports:
-      - "0.0.0.0:1883:1883" 
-    volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf 
 
-  # Backend Python FastAPI
-  backend:
-    build: .
-    container_name: futurekawa-backend
+# # Broker MQTT Mosquitto pour le pays "Brésil"
+# mosquitto-bresil:
+#   image: eclipse-mosquitto:2
+#   container_name: futurekawa-mqtt-bresil
+#   ports:
+#     - "1883:1883"
+#   volumes:
+#     - ./backend-pays/src/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # Backend FastAPI pour le pays "Brésil"
+  backend-pays-bresil:
+    build:
+      context: ./backend-pays/src
+    container_name: futurekawa-backend-bresil
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://futurekawa:futurekawa123@postgres:5432/futurekawa
-      MQTT_BROKER: mosquitto
+      DATABASE_URL: postgresql://futurekawa:futurekawa123@postgres-bresil:5432/futurekawa_bresil
+      MQTT_BROKER: mosquitto-bresil
       MQTT_PORT: 1883
     depends_on:
-      postgres:
+      postgres-bresil:
         condition: service_healthy
-      mosquitto:
+      mosquitto-bresil:
         condition: service_started
     restart: always
 
+  # Simulateur IoT (ESP32) publiant vers le broker du Brésil
+  simulateur-bresil:
+    build:
+      context: ./futurekawa-simulateur
+    container_name: futurekawa-sim-bresil
+    command: python simulateur_esp32.py --pays bresil --broker mosquitto-bresil --port 1883 --intervalle 10
+    depends_on:
+      - mosquitto-bresil
+    restart: always
+
+  # =========================================================================
+  # BACKEND CENTRAL (SIÈGE)
+  # =========================================================================
+
+  # Backend Central (Siège) qui consolide les API pays
+  # TODO
+
+  # =========================================================================
+  # FRONTEND_WEB CENTRAL (SIÈGE)
+  # =========================================================================
+  # TODO
+
 volumes:
-  postgres_data:
+  postgres_bresil_data:
