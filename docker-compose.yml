@@ -67,7 +67,19 @@ services:
   # =========================================================================
 
   # Backend Central (Siège) qui consolide les API pays
-  # TODO
+  backend-central:
+    build:
+      context: ./backend-central/src
+    container_name: futurekawa-backend-central
+    ports:
+      - "8010:8000"  
+    environment:
+      COUNTRY_BRESIL_URL: http://backend-pays-bresil:8000
+      COUNTRY_EQUATEUR_URL: http://backend-pays-equateur:8000
+      COUNTRY_COLOMBIE_URL: http://backend-pays-colombie:8000
+    depends_on:
+      - backend-pays-bresil
+    restart: always
 
   # =========================================================================
   # FRONTEND_WEB CENTRAL (SIÈGE)
