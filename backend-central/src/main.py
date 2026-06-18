@@ -128,3 +128,96 @@ async def get_consolidated_stocks(country: Optional[str] = Query(None, descripti
         consolidated_lots.sort(key=lambda x: x.get("date_stockage", ""))
         
         return consolidated_lots
+    
+
+ # [[TO DO]]
+ # mesures 
+ #  alertes
+ # get lot/coutries
+ #  update lot/coutries/status
+
+ 
+@app.get("/api/central/mesures/{country_id}")
+async def get_country_measures(country_id: str, limit: int = Query(100, description="Nombre max de mesures à récupérer")):
+    """
+    Fetches temperature and humidity measurements for a specific country
+    to draw historical charts.
+    """
+    if country_id not in COUNTRIES:
+        raise HTTPException(status_code=404, detail="Pays non configuré.")
+        
+    async with httpx.AsyncClient() as client:
+        measures = await fetch_from_country(client, country_id, f"/mesures/dernieres/{limit}")
+        if measures is None:
+            # Fallback to general measures if last N endpoint fails or is not available
+            measures = await fetch_from_country(client, country_id, "/mesures")
+            
+        if measures is None:
+            raise HTTPException(status_code=502, detail=f"Impossible de contacter l'API du pays '{country_id}'.")
+            
+        return measures
+
+@app.get("/api/central/alertes")
+async def get_consolidated_alerts(only_unread: bool = Query(False, description="Récupérer uniquement les alertes non lues")):
+    """
+    Fetches and consolidates alerts from all active country backends.
+    Sorted by date (newest first).
+    """
+    endpoint = "/alertes/non-lues" if only_unread else "/alertes"
+    
+    async with httpx.AsyncClient() as client:
+        tasks = []
+        country_ids = list(COUNTRIES.keys())
+        for c_id in country_ids:
+            tasks.append(fetch_from_country(client, c_id, endpoint))
+            
+        results = await asyncio.gather(*tasks)
+        
+        consolidated_alerts = []
+        for i, c_id in enumerate(country_ids):
+            alerts_list = results[i]
+            if alerts_list and isinstance(alerts_list, list):
+                for alert in alerts_list:
+                    alert["country_id"] = c_id
+                    alert["pays_nom"] = COUNTRIES[c_id]["name"]
+                    consolidated_alerts.append(alert)
+                    
+        # Sort by date (usually alertes have a timestamp or date_alerte field)
+        # Sort newest first
+        consolidated_alerts.sort(key=lambda x: x.get("date_alerte" if "date_alerte" in x else "date_mesure", ""), reverse=True)
+        
+        return consolidated_alerts
+
+@app.get("/api/central/lots/{country_id}/{lot_id}")
+async def get_specific_lot(country_id: str, lot_id: str):
+    """
+    Fetches the details of a specific lot from the country where it is stored.
+    """
+    if country_id not in COUNTRIES:
+        raise HTTPException(status_code=404, detail="Pays non configuré.")
+        
+    async with httpx.AsyncClient() as client:
+        lot = await fetch_from_country(client, country_id, f"/lots/{lot_id}")
+        if lot is None:
+            raise HTTPException(status_code=404, detail=f"Lot '{lot_id}' non trouvé ou API pays indisponible.")
+        
+        lot["country_id"] = country_id
+        lot["pays_nom"] = COUNTRIES[country_id]["name"]
+        return lot
+
+@app.put("/api/central/lots/{country_id}/{lot_id}/statut")
+async def update_lot_status_remotely(country_id: str, lot_id: str, statut: str = Query(..., description="Nouveau statut (conforme, alerte, perime)")):
+    """
+    Allows the headquarters (siège) to update a lot status remotely on the country database.
+    """
+    if country_id not in COUNTRIES:
+        raise HTTPException(status_code=404, detail="Pays non configuré.")
+        
+    async with httpx.AsyncClient() as client:
+        endpoint = f"/lots/{lot_id}/statut?statut={statut}"
+        updated_lot = await fetch_from_country(client, country_id, endpoint, method="PUT")
+        
+        if updated_lot is None:
+            raise HTTPException(status_code=502, detail="Échec de la mise à jour du statut sur l'API pays.")
+            
+        return updated_lot
