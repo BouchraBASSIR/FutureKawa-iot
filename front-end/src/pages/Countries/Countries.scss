@@ -1,0 +1,32 @@
+.country-comparison-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+.ccc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ccc-stat {
+  text-align: center;
+  padding: 6px 0;
+}
+
+.ccc-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.ccc-lbl {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.stat-card {
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}

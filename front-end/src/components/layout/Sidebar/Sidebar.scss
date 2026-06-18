@@ -1,0 +1,89 @@
+.sidebar {
+  height: 100vh;
+  width: 250px;
+  background-color: #001529;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+/* Séparateur sous le logo */
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 16px 8px;
+}
+
+/* Override Ant Design Menu */
+.sidebar .ant-menu {
+  background: transparent;
+  border-inline-end: none !important;
+  padding: 8px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar .ant-menu-item {
+  height: 48px !important;
+  line-height: 48px !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+  padding-left: 16px !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+
+.sidebar .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+}
+
+.sidebar .ant-menu-item-selected {
+  background-color: #1677ff !important;
+  color: #fff !important;
+}
+
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.menu-icon-text {
+  font-size: 16px;
+  line-height: 1;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Déconnexion en bas */
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 12px 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  transition: color 0.2s;
+}
+
+.sidebar-bottom:hover {
+  color: #fff;
+}
+
+.sidebar-bottom img {
+  width: 18px;
+  height: 18px;
+}
