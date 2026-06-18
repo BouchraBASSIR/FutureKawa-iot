@@ -1,0 +1,71 @@
+.leaflet-world-map {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  z-index: 0;
+}
+
+/* Custom popup */
+.lf-custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.lf-custom-popup .leaflet-popup-content {
+  margin: 0;
+  width: 220px !important;
+}
+
+.lf-custom-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.lf-popup {
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.lf-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #001529;
+}
+
+.lf-flag { font-size: 20px; }
+
+.lf-name {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.lf-popup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: #f0f0f0;
+}
+
+.lf-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.lf-lbl {
+  font-size: 10px;
+  color: #8c8c8c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lf-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+}

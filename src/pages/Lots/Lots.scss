@@ -1,0 +1,10 @@
+.lots-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lot-row--expiré td { background: #fff1f0 !important; }
+.lot-row--avertissement td { background: #fffbe6 !important; }
