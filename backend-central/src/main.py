@@ -65,6 +65,7 @@ def home():
         "configured_countries": list(COUNTRIES.keys())
     }
 
+ #  route testée : fonctionnel
 @app.get("/api/central/countries")
 async def list_countries():
     """
@@ -91,7 +92,7 @@ async def list_countries():
             })
             
         return response
-    
+# en attente de push-youcef : récupération des lots all et par stock(entrepôt)   
 @app.get("/api/central/stocks")
 async def get_consolidated_stocks(country: Optional[str] = Query(None, description="Filtrer par id pays (ex: bresil, equateur, colombie)")):
     """
@@ -130,13 +131,8 @@ async def get_consolidated_stocks(country: Optional[str] = Query(None, descripti
         return consolidated_lots
     
 
- # [[TO DO]]
- # mesures 
- #  alertes
- # get lot/coutries
- #  update lot/coutries/status
 
- 
+ #  route testée : fonctionnel
 @app.get("/api/central/mesures/{country_id}")
 async def get_country_measures(country_id: str, limit: int = Query(100, description="Nombre max de mesures à récupérer")):
     """
