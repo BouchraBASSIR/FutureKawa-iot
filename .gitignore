@@ -1,0 +1,7 @@
+/history 
+.history
+.venv
+/venv
+/backend-pays/venv
+/backend-central/src/__pycache__
+/backend-pays/src/__pycache__

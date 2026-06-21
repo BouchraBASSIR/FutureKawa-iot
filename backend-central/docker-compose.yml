@@ -1,0 +1,48 @@
+version: '3.8'
+
+# ================================================================
+#  FutureKawa — Backend Central (Siège)
+#
+#  Ce service agrège les données des trois backends pays.
+#  Les URLs des backends pays sont injectées par variables d'env.
+#
+#  Démarrage rapide :
+#    cp .env.example .env   # puis renseigner les URLs des backends pays
+#    docker compose up -d
+#
+#  L'API centrale est ensuite disponible sur http://localhost:9000
+#  Documentation Swagger : http://localhost:9000/docs
+# ================================================================
+
+services:
+
+  backend-central:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: futurekawa-backend-central
+    ports:
+      - "9000:9000"
+    environment:
+      # ── URLs des backends pays ────────────────────────────────
+      # Remplacer par les IP/hostnames réels en production.
+      # host.docker.internal permet d'atteindre l'hôte depuis Docker (Linux/Mac/Windows).
+      COUNTRY_BRESIL_URL:    ${COUNTRY_BRESIL_URL:-http://host.docker.internal:8000}
+      COUNTRY_EQUATEUR_URL:  ${COUNTRY_EQUATEUR_URL:-http://host.docker.internal:8001}
+      COUNTRY_COLOMBIE_URL:  ${COUNTRY_COLOMBIE_URL:-http://host.docker.internal:8002}
+
+      # ── Alternative : configuration dynamique ────────────────
+      # Décommenter et adapter pour ajouter/retirer des pays sans rebuild.
+      # COUNTRIES_CONFIG: "bresil:Brésil:http://...,equateur:Équateur:http://..."
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:9000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

@@ -1,90 +1,75 @@
-version: '3.8'
-
 services:
 
   # =========================================================================
-  # INFRASTRUCTURE DE BASE (PAYS : BRÉSIL)
+  # INFRASTRUCTURE PAYS (BRÉSIL)
   # =========================================================================
 
-  # Base de données PostgreSQL pour le pays "Brésil"
-  postgres-bresil:
-    image: postgres:15
-    container_name: futurekawa-db-bresil
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./backend-pays/src/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+    networks:
+      - futurekawa-network
+
+  postgres:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: futurekawa
-      POSTGRES_PASSWORD: futurekawa123
-      POSTGRES_DB: futurekawa_bresil
+      POSTGRES_USER:     ${POSTGRES_USER:-futurekawa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-futurekawa123}
+      POSTGRES_DB:       ${POSTGRES_DB:-futurekawa_bresil}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_bresil_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U futurekawa -d futurekawa_bresil"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-futurekawa}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - futurekawa-network
 
-
-# # Broker MQTT Mosquitto pour le pays "Brésil"
-# mosquitto-bresil:
-#   image: eclipse-mosquitto:2
-#   container_name: futurekawa-mqtt-bresil
-#   ports:
-#     - "1883:1883"
-#   volumes:
-#     - ./backend-pays/src/mosquitto.conf:/mosquitto/config/mosquitto.conf
-
-  # Backend FastAPI pour le pays "Brésil"
-  backend-pays-bresil:
+  backend-pays:
     build:
-      context: ./backend-pays/src
-    container_name: futurekawa-backend-bresil
+      context: ./backend-pays
+      dockerfile: Dockerfile
+    environment:
+      PAYS:         ${PAYS:-bresil}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-futurekawa}:${POSTGRES_PASSWORD:-futurekawa123}@postgres:5432/${POSTGRES_DB:-futurekawa_bresil}
+      MQTT_BROKER:  mosquitto
+      MQTT_PORT:    1883
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://futurekawa:futurekawa123@postgres-bresil:5432/futurekawa_bresil
-      MQTT_BROKER: mosquitto-bresil
-      MQTT_PORT: 1883
     depends_on:
-      postgres-bresil:
+      postgres:
         condition: service_healthy
-      mosquitto-bresil:
-        condition: service_started
-    restart: always
-
-  # Simulateur IoT (ESP32) publiant vers le broker du Brésil
-  simulateur-bresil:
-    build:
-      context: ./futurekawa-simulateur
-    container_name: futurekawa-sim-bresil
-    command: python simulateur_esp32.py --pays bresil --broker mosquitto-bresil --port 1883 --intervalle 10
-    depends_on:
-      - mosquitto-bresil
-    restart: always
+    networks:
+      - futurekawa-network
 
   # =========================================================================
   # BACKEND CENTRAL (SIÈGE)
   # =========================================================================
 
-  # Backend Central (Siège) qui consolide les API pays
   backend-central:
     build:
-      context: ./backend-central/src
-    container_name: futurekawa-backend-central
-    ports:
-      - "8010:8000"  
+      context: ./backend-central
+      dockerfile: Dockerfile
     environment:
-      COUNTRY_BRESIL_URL: http://backend-pays-bresil:8000
-      COUNTRY_EQUATEUR_URL: http://backend-pays-equateur:8000
-      COUNTRY_COLOMBIE_URL: http://backend-pays-colombie:8000
+      COUNTRY_BRESIL_URL:   http://backend-pays:8000
+      COUNTRY_EQUATEUR_URL: ${COUNTRY_EQUATEUR_URL:-http://backend-equateur:8001}
+      COUNTRY_COLOMBIE_URL: ${COUNTRY_COLOMBIE_URL:-http://backend-colombie:8002}
+    ports:
+      - "9000:9000"
     depends_on:
-      - backend-pays-bresil
-    restart: always
+      - backend-pays
+    networks:
+      - futurekawa-network
 
-  # =========================================================================
-  # FRONTEND_WEB CENTRAL (SIÈGE)
-  # =========================================================================
-  # TODO
+networks:
+  futurekawa-network:
+    driver: bridge
 
 volumes:
-  postgres_bresil_data:
+  postgres-data:
