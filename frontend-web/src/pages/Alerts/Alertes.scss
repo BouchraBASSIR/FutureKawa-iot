@@ -1,0 +1,174 @@
+.alertes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+// ── En-tête ──────────────────────────────────────────────────────────────────
+
+.alertes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.alertes-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alertes-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.alertes-count-total {
+  font-size: 13px;
+  color: #8c8c8c;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.alertes-count-nonlues {
+  font-size: 13px;
+  color: #cf1322;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 500;
+}
+
+.alertes-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// ── Filtres ──────────────────────────────────────────────────────────────────
+
+.alertes-filter-group {
+  display: flex;
+  background: #f0f0f0;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.filter-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 12px;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #595959;
+  transition: all 0.15s;
+  font-family: inherit;
+
+  &:hover { background: rgba(0,0,0,0.05); }
+
+  &.active {
+    background: #fff;
+    color: #1a1a2e;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+}
+
+// ── Tableau ──────────────────────────────────────────────────────────────────
+
+.alertes-table-wrap {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+
+  .ant-table-thead > tr > th {
+    background: #fafafa;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .ant-table-tbody > tr > td {
+    vertical-align: middle;
+  }
+
+  // Supprime le padding de la première colonne (barre de statut)
+  .ant-table-thead > tr > th:first-child,
+  .ant-table-tbody > tr > td:first-child {
+    padding: 0 !important;
+    width: 4px;
+  }
+}
+
+// Barre colorée de statut (gauche de la ligne)
+.alert-status-bar {
+  width: 4px;
+  height: 100%;
+  min-height: 40px;
+  border-radius: 0;
+}
+
+// ── Lignes ────────────────────────────────────────────────────────────────────
+
+.alert-row {
+  transition: background 0.15s;
+
+  &--unread td {
+    background: #fff !important;
+  }
+
+  &--read td {
+    background: #fafafa !important;
+    opacity: 0.7;
+  }
+
+  &:hover td { opacity: 1 !important; }
+}
+
+// ── Contenu des cellules ──────────────────────────────────────────────────────
+
+.alert-msg--unread {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.alert-msg--read {
+  color: #595959;
+  font-weight: 400;
+}
+
+.alert-date {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.alert-tag-lue {
+  font-size: 12px;
+  color: #52c41a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.alert-tag-nonlue {
+  font-size: 12px;
+  color: #fa8c16;
+  font-weight: 500;
+}
+
+.btn-marquer-lue {
+  color: #8c8c8c !important;
+  &:hover { color: #52c41a !important; }
+}

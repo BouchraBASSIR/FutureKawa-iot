@@ -1,0 +1,425 @@
+--- PAGE 1 ---
+ C E R T I F I C A T I O N  P R O F E S S I O N N E L L E  E X P E R T  E N  I N F O R M A T I Q U E  E T  S Y S T E M E
+ D ’ I N F O R M A T I O N  R N C P 3 5 5 8 4
+B l o c  4  –  C o n c e v o i r  e t  d é v e l o p p e r  d e s  s o l u t i o n s  a p p l i c a t i v e s  m é t i e r  e t  s p é c i f i q u e s
+( m o b i l e s ,  e m b a r q u é e s  e t  E R P )
+C a h i e r  d e s  C h a r g e s  d e  l a  M S P R  «  C o n c e p t i o n  d ' u n e  s o l u t i o n  a p p l i c a t i v e  e n
+a d é q u a t i o n  a v e c  l ' e n v i r o n n e m e n t  t e c h n i q u e  é t u d i é  »
+C o l l e c t e r  l e s  b e s o i n s  m é t i e r s  d e s  u t i l i s a t e u r s  e n  m e n a n t  d e s  i n t e r v i e w s  a u p r è s  d ’ e u x  p o u r  c o m p r e n d r e
+l e u r s  a c t i v i t é s  e t  l e u r s  c o n t r a i n t e s  m é t i e r  a f i n  d ’ é t u d i e r  l e s  o p p o r t u n i t é s  e t  l a  f a i s a b i l i t é  t e c h n o l o g i q u e
+d ’ u n e  s o l u t i o n  a p p l i c a t i v e  s p é c i f i q u e  o u  m é t i e r .  
+C o n c e v o i r  u n e  a r c h i t e c t u r e  a p p l i c a t i v e  s e l o n  l a  c o m p l e x i t é  d u  s y s t è m e  d ’ i n f o r m a t i o n  e x i s t a n t  d e  t y p e
+a r c h i t e c t u r e  d i s t r i b u é e ,  o u  m i c r o - s e r v i c e  é v o l u t i v e  e t  t o l é r a n t e  a u x  p a n n e s  
+D é v e l o p p e r  u n e  a p p l i c a t i o n  a d é q u a t e  s e l o n  l a  s t r a t é g i e  a p p l i c a t i v e  d e  l ’ e n v i r o n n e m e n t  e n  u t i l i s a n t  u n
+l a n g a g e  d e  p r o g r a m m a t i o n  a p p r o p r i é  d a n s  l e  r e s p e c t  d u  c a h i e r  d e s  c h a r g e s  é t a b l i  a f i n  d e  r é p o n d r e
+a u x  b e s o i n s  u t i l i s a t e u r s / d i r e c t i o n s  m é t i e r s  
+D é v e l o p p e r  u n e  s o l u t i o n  a p p l i c a t i v e  i n t é g r é e  e n  u t i l i s a n t  l e  p a r a m é t r a g e  e t  l e  l a n g a g e  d e
+p r o g r a m m a t i o n  s p é c i f i q u e  d e  l ’ é d i t e u r  d a n s  l e  r e s p e c t  d u  c a h i e r  d e s  c h a r g e s  é t a b l i  a f i n  d e  r é p o n d r e
+a u x  b e s o i n s  u t i l i s a t e u r s / d i r e c t i o n s  m é t i e r s
+E f f e c t u e r  l e s  t e s t s  d e  l a  s o l u t i o n  a p p l i c a t i v e  p a r a m é t r é e  o u  d é v e l o p p é e  p o u r  i d e n t i f i e r  l e s  e r r e u r s  e t
+d y s f o n c t i o n n e m e n t s  e t  é t a b l i r  l e s  p l a n s  d e  c o r r e c t i o n / d ’ a m é l i o r a t i o n  a v a n t  s a  m i s e  e n  p r o d u c t i o n  
+A p p l i q u e r  l ’ i n t é g r a t i o n  c o n t i n u e  d a n s  l e  c a d r e  d u  d é v e l o p p e m e n t  d ’ u n e  a p p l i c a t i o n  e n  u t i l i s a n t  u n  o u t i l
+d ’ i n t é g r a t i o n  c o n t i n u e  a f i n  d e  v é r i f i e r  l a  c o n f o r m i t é  d e  l a  s o l u t i o n  e t  l e s  b e s o i n s  u t i l i s a t e u r s  
+V é r i f i e r  l a  c o n f o r m i t é  e n t r e  l a  s o l u t i o n  d é v e l o p p é e  o u  p a r a m é t r é e  e t  l e s  f o n c t i o n n a l i t é s  a t t e n d u e s  à
+p a r t i r  d e s  r e t o u r s  d e s  d i r e c t i o n s  m é t i e r s  a f i n  d e  r é d i g e r  l a  d o c u m e n t a t i o n  e t  l e s  r é f é r e n t i e l s  o r i e n t é s
+u t i l i s a t e u r s
+C o n d u i r e  l e  c h a n g e m e n t  a u p r è s  d e s  m é t i e r s  l o r s  d u  d é p l o i e m e n t  d ’ u n e  s o l u t i o n  a p p l i c a t i v e  o u
+i n t é g r é e  e n  m e t t a n t  e n  p l a c e  u n e  d é m a r c h e  d e  p a r t i c i p a t i o n ,  d e  c o m m u n i c a t i o n  e t  d e  f o r m a t i o n  p o u r
+a c c o m p a g n e r  l e s  u t i l i s a t e u r s  à  l ’ i n t é g r a t i o n  d u  n o u v e l  o u t i l  d a n s  l e u r s  h a b i t u d e s  d e  t r a v a i l .  
+C O M P É T E N C E S  É V A L U É E S  :  
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+P a g e   1
+D u r é e  d e  p r é p a r a t i o n  :  2 4  h e u r e s  
+M i s e  e n  œ u v r e  :  T r a v a i l  d ’ é q u i p e  c o n s t i t u é e  d e  4  a p p r e n a n t s - c a n d i d a t s  ( 5  m a x i m u m  s i  g r o u p e
+i m p a i r )  
+P H A S E  1  :  P R É P A R A T I O N  D E  C E T T E  M I S E  E N  S I T U A T I O N  P R O F E S S I O N N E L L E  R E C O N S T I T U É E  
+O b j e c t i f  :  m e t t r e  e n  a v a n t  e t  d é m o n t r e r  q u e  l e s  c o m p é t e n c e s  v i s é e s  p a r  c e  b l o c  s o n t  b i e n  a c q u i s e s .
+M o y e n  :  L ’ é q u i p e  u t i l i s e  u n  s u p p o r t  d e  p r é s e n t a t i o n  
+D u r é e  t o t a l e  p a r  g r o u p e  :  5 0  m n  s e  d é c o m p o s a n t  c o m m e  s u i t  :  
+2 0  m n  d e  s o u t e n a n c e  o r a l e  p a r  l ’ é q u i p e .  
+3 0  m n  d ’ e n t r e t i e n  c o l l e c t i f  a v e c  l e  j u r y  ( q u e s t i o n n e m e n t  c o m p l é m e n t a i r e ) .   
+J u r y  d ’ é v a l u a t i o n  :  2  p e r s o n n e s  ( b i n ô m e  d ’ é v a l u a t e u r s )  p a r  j u r y  –  C e s  é v a l u a t e u r s  n e  s o n t  p a s
+i n t e r v e n u s  d u r a n t  l a  p é r i o d e  d e  f o r m a t i o n  e t  n e  c o n n a i s s e n t  p a s  l e s  a p p r e n a n t s  à  é v a l u e r .  
+P H A S E  2  :  P R É S E N T A T I O N  O R A L E  C O L L E C T I V E  +  E N T R E T I E N  C O L L E C T I F  
+--- PAGE 2 ---
+I .  C O N T E X T E  G L O B A L  E T  M É T I E R
+F u t u r e K a w a  e s t  u n e  e n t r e p r i s e  i n t e r n a t i o n a l e  s p é c i a l i s é e  d a n s  l a  c a f é i c u l t u r e  e t  l a  l o g i s t i q u e  d e  c a f é
+v e r t .  E l l e  r e g r o u p e  p l u s i e u r s  e x p l o i t a t i o n s  c a f é i è r e s  i m p l a n t é e s  e n  A m é r i q u e  d u  S u d ,  a v e c  u n e  p r é s e n c e
+o p é r a t i o n n e l l e  d a n s  t r o i s  p a y s  :  B r é s i l ,  É q u a t e u r  e t  C o l o m b i e .  S o n  m é t i e r  c o u v r e  l ’ e n s e m b l e  d e  l a  c h a î n e
+d e  v a l e u r ,  d e  l a  g r a i n e  à  l a  r é c o l t e ,  p u i s  l e  s t o c k a g e  e t  l ’ e x p é d i t i o n  d e s  g r a i n s  v e r s  s e s  c l i e n t s  r é p a r t i s  d a n s
+l e  m o n d e .
+1 .  A c t i v i t é  e t  c h a î n e  d e  v a l e u r
+F u t u r e K a w a  i n t e r v i e n t  s u r  p l u s i e u r s  é t a p e s  c l é s  :
+P r o d u c t i o n  a g r i c o l e  :  p i l o t a g e  d e  p a r c e l l e s ,  g e s t i o n  d e s  c y c l e s  d e  c u l t u r e ,  r é c o l t e ,  p r e m i è r e s
+o p é r a t i o n s  d e  t r i / s é c h a g e .
+C o n s t i t u t i o n  d e  l o t s  :  c h a q u e  r é c o l t e  e s t  r e g r o u p é e  e n  l o t s  i d e n t i f i é s  ( I d  u n i q u e ) ,  a s s o c i é s  à  u n  p a y s ,
+u n e  e x p l o i t a t i o n ,  u n e  d a t e  e t  d e s  c a r a c t é r i s t i q u e s  d e  q u a l i t é .
+S t o c k a g e  e n  e n t r e p ô t s  :  l e s  l o t s  s o n t  s t o c k é s  d a n s  d e s  e n t r e p ô t s  d é d i é s ,  p a r f o i s  s i t u é s  à  p r o x i m i t é  d e s
+z o n e s  d e  r é c o l t e  o u  d e  h u b s  l o g i s t i q u e s .  L e s  c o n d i t i o n s  d e  s t o c k a g e  ( t e m p é r a t u r e ,  h u m i d i t é )  s o n t
+c r i t i q u e s  p o u r  p r é s e r v e r  l e s  a r ô m e s  e t  é v i t e r  l a  d é g r a d a t i o n .
+D i s t r i b u t i o n  i n t e r n a t i o n a l e  :  F u t u r e K a w a  v e n d  m a j o r i t a i r e m e n t  d u  c a f é  v e r t  ( n o n  t o r r é f i é )  e t  o r g a n i s e
+l ’ e x p é d i t i o n  v e r s  s e s  c l i e n t s  ( c o n t a i n e r s ,  t r a n s i t a i r e s ,  d o c u m e n t s  d o u a n i e r s ,  t r a ç a b i l i t é ) .
+2 .  C l i e n t s ,  s e r v i c e s  e t  m o d è l e  é c o n o m i q u e
+F u t u r e K a w a  t r a v a i l l e  p r i n c i p a l e m e n t  e n  B 2 B .  S e s  c l i e n t s  s o n t  n o t a m m e n t  :
+d e s  t o r r é f a c t e u r s  i n d u s t r i e l s  e t  a r t i s a n a u x ,
+d e s  m a r q u e s  d e  c a f é  ( g r a n d e  d i s t r i b u t i o n  /  p r e m i u m ) ,
+d e s  i m p o r t a t e u r s - d i s t r i b u t e u r s ,
+p o n c t u e l l e m e n t  d e s  a c t e u r s  d e  l ’ a g r o a l i m e n t a i r e  ( e x t r a i t s ,  a r ô m e s ,  b l e n d s ) .
+S o n  b u s i n e s s  m o d e l  r e p o s e  s u r  :
+l a  v e n t e  d e  l o t s  d e  c a f é  v e r t  ( c o n t r a t s  c a d r e s  +  c o m m a n d e s  a u  f i l  d e  l ’ e a u ) ,
+d e s  e n g a g e m e n t s  d e  q u a l i t é  e t  d e  t r a ç a b i l i t é  ( o r i g i n e ,  c o n d i t i o n s  d e  s t o c k a g e ,  h i s t o r i q u e ) ,
+d e s  s e r v i c e s  a s s o c i é s  :  g e s t i o n  d e s  s t o c k s ,  r é s e r v a t i o n  d e  l o t s ,  p r i o r i s a t i o n  d e s  e x p é d i t i o n s ,  e t  r e p o r t i n g
+p o u r  r é p o n d r e  a u x  e x i g e n c e s  d e s  c l i e n t s  ( q u a l i t é ,  c o n f o r m i t é ,  t r a ç a b i l i t é ) .
+3 .  O r g a n i s a t i o n  e t  o r g a n i g r a m m e  s i m p l i f i é
+F u t u r e K a w a  e s t  s t r u c t u r é e  d e  f a ç o n  “ g r o u p e ” ,  a v e c  u n e  d i r e c t i o n  c e n t r a l e  e t  d e s  e n t i t é s  p a r  p a y s .
+D i r e c t i o n  G é n é r a l e  ( s i è g e )
+C E O  /  D i r e c t i o n  g é n é r a l e  :  s t r a t é g i e ,  g r a n d s  c o m p t e s ,  c o n f o r m i t é
+D i r e c t i o n  O p é r a t i o n s  &  S u p p l y  C h a i n  :  l o g i s t i q u e ,  e n t r e p ô t s ,  t r a n s p o r t ,  p l a n i f i c a t i o n
+D i r e c t i o n  Q u a l i t é  :  c o n t r ô l e  q u a l i t é  l o t s ,  a u d i t s ,  t r a ç a b i l i t é ,  g e s t i o n  d e s  n o n - c o n f o r m i t é s
+D i r e c t i o n  F i n a n c e  &  A d m i n i s t r a t i o n  :  a c h a t s ,  c o n t r a t s ,  f a c t u r a t i o n ,  g e s t i o n  f o u r n i s s e u r s
+D i r e c t i o n  C o m m e r c i a l e  :  r e l a t i o n  c l i e n t s ,  p r é v i s i o n s  d e  v e n t e ,  g e s t i o n  c a t a l o g u e  l o t s
+D i r e c t i o n  S I  /  I n f o r m a t i q u e  :  a p p l i c a t i o n s ,  d o n n é e s ,  i n f r a s t r u c t u r e s ,  s é c u r i t é
+E n t i t é s  p a r  p a y s  ( B r é s i l  /  É q u a t e u r  /  C o l o m b i e )
+R e s p o n s a b l e  d ’ e x p l o i t a t i o n  :  p r o d u c t i o n  +  s t o c k a g e  +  e x p é d i t i o n  l o c a l e
+R e s p o n s a b l e  e n t r e p ô t  :  r é c e p t i o n ,  s t o c k a g e ,  i n v e n t a i r e s ,  p r é p a r a t i o n  l o t s
+R é f é r e n t  q u a l i t é  l o c a l  :  c o n t r ô l e s ,  a l e r t e s  q u a l i t é ,  p r o c é d u r e s
+C o r r e s p o n d a n t  S I  l o c a l  :  r e l a i s  t e r r a i n ,  m a t é r i e l ,  s u p p o r t  d e  n i v e a u  1  
+4 .  E n j e u x  m é t i e r  a c t u e l s  :  q u a l i t é ,  t r a ç a b i l i t é ,  p e r t e s  e t  c o n f o r m i t é
+L ’ e n t r e p r i s e  c o n n a î t  p l u s i e u r s  i r r i t a n t s  o p é r a t i o n n e l s  :
+L e s  c o n d i t i o n s  d e  s t o c k a g e  ( t e m p é r a t u r e / h u m i d i t é )  s o n t  v a r i a b l e s  s e l o n  l e s  e n t r e p ô t s ,  a v e c  d e s
+c o n s é q u e n c e s  s u r  l a  q u a l i t é .
+L e s  s u i v i s  s o n t  s o u v e n t  s e m i - m a n u e l  ( r e l e v é s  p o n c t u e l s ,  t a b l e a u x ,  o u t i l s  h é t é r o g è n e s ) ,  r e n d a n t
+d i f f i c i l e  l ’ a u d i t a b i l i t é .
+L e s  é q u i p e s  d o i v e n t  r e s p e c t e r  u n e  l o g i q u e  d e  d i s t r i b u t i o n  F I F O  :  e x p é d i e r  e n  p r i o r i t é  l e s  l o t s  l e s  p l u s
+a n c i e n s ,  m a i s  l a  v i s i b i l i t é  n ’ e s t  p a s  t o u j o u r s  f i a b l e .
+L e s  c l i e n t s  d e m a n d e n t  d e s  p r e u v e s  :  h i s t o r i q u e  d e s  c o n d i t i o n s  d e  s t o c k a g e  e t  g e s t i o n  p r o a c t i v e  d e s
+r i s q u e s  ( n o n - c o n f o r m i t é s ) .
+P a g e   2
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+--- PAGE 3 ---
+C e s  e n j e u x  i m p a c t e n t  d i r e c t e m e n t  :
+l e  t a u x  d e  r é c l a m a t i o n ,
+l e s  c o û t s  d e  p e r t e s  ( a l t é r a t i o n ,  d é c l a s s e m e n t ) ,
+l a  c o n f i a n c e  c l i e n t  e t  l a  v a l o r i s a t i o n  d e s  l o t s  p r e m i u m .
+5 .  L e  s y s t è m e  d ’ i n f o r m a t i o n  e t  l e  s e r v i c e  i n f o r m a t i q u e
+F u t u r e K a w a  d i s p o s e  d ’ u n  S I  “ h y b r i d e ” ,  c o m p o s é  d ’ o u t i l s  h i s t o r i q u e s  e t  d e  s o l u t i o n s  r é c e n t e s  :
+U n  E R P  ( g e s t i o n  a c h a t s / v e n t e s / s t o c k / c o m p t a )  u t i l i s é  a u  s i è g e ,  a v e c  d e s  a d a p t a t i o n s  l o c a l e s .
+D e s  o u t i l s  o p é r a t i o n n e l s  ( t a b l e u r s ,  a p p l i c a t i o n s  i n t e r n e s  l é g è r e s )  c ô t é  e n t r e p ô t s .
+U n e  v o l o n t é  d ’ i n d u s t r i a l i s a t i o n  :  t r a ç a b i l i t é ,  d o n n é e s ,  s u p e r v i s i o n ,  a u t o m a t i s a t i o n .
+L e  s e r v i c e  i n f o r m a t i q u e  e s t  o r g a n i s é  e n  p e t i t e  é q u i p e  t r a n s v e r s e ,  a v e c  u n e  f o r t e  o r i e n t a t i o n  “ p r o d u i t ”  :
+D S I  /  R e s p o n s a b l e  S I  :  g o u v e r n a n c e ,  s é c u r i t é ,  p r i o r i s a t i o n  d e s  p r o j e t s ,  r e l a t i o n  m é t i e r s .
+É q u i p e  A p p l i c a t i o n s  ( 2 – 3  p e r s . )  :  d é v e l o p p e m e n t  i n t e r n e ,  i n t é g r a t i o n s  ( A P I ) ,  g e s t i o n  E R P  e t  o u t i l s
+m é t i e r s .
+É q u i p e  D a t a / B I  ( 1 – 2  p e r s . )  :  r e p o r t i n g ,  t a b l e a u x  d e  b o r d ,  q u a l i t é  d e s  d o n n é e s ,  i n d i c a t e u r s
+s u p p l y / q u a l i t é .
+É q u i p e  I n f r a / D e v O p s  ( 1 – 2  p e r s . )  :  c o n t e n e u r i s a t i o n ,  d é p l o i e m e n t s ,  s u p e r v i s i o n ,  C I / C D ,  s u p p o r t  N 2 .
+·       S u p p o r t  u t i l i s a t e u r s  :  a s s u r é  p a r  l ’ i n f r a / D e v O p s  e t  d e s  c o r r e s p o n d a n t s  l o c a u x  ( N 1 ) .
+L e  S I  e s t  c o n t r a i n t  p a r  :
+d e s  c o n d i t i o n s  t e r r a i n  ( r é s e a u  v a r i a b l e ,  m a t é r i e l  l i m i t é  e n  e n t r e p ô t s ) ,
+l a  n é c e s s i t é  d e  s o l u t i o n s  r o b u s t e s  e t  m a i n t e n a b l e s ,
+u n e  l o g i q u e  d e  d é p l o i e m e n t  m u l t i - s i t e s / m u l t i - p a y s ,
+d e s  e x i g e n c e s  c r o i s s a n t e s  s u r  l a  s é c u r i t é  e t  l a  t r a ç a b i l i t é .
+6 .  A m b i t i o n  à  1 2 – 1 8  m o i s
+F u t u r e K a w a  s o u h a i t e  s t a n d a r d i s e r  s o n  s u i v i  d e  s t o c k a g e  e t  c r é e r  u n e  b a s e  s o l i d e  p o u r  u n e  “ p h a s e  2 ”  :
+a u t o m a t i s a t i o n  d e s  e n t r e p ô t s  ( c h a u f f a g e ,  h u m i d i f i c a t i o n ,  a é r a t i o n  p i l o t é e  p a r  c a p t e u r s ) ,  a v e c  u n e
+a p p r o c h e  p r o g r e s s i v e  a f i n  d e  s é c u r i s e r  l ’ a d o p t i o n  p a r  l e s  é q u i p e s  l o c a l e s .
+P a g e   3
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+I I .  C A H I E R  D E S  C H A R G E S
+F u t u r e K a w a  s o u h a i t e  m e t t r e  e n  p l a c e  u n e  s o l u t i o n  a p p l i c a t i v e  d e  s u i v i  d e s  s t o c k s  e t  d e s  c o n d i t i o n s  d e
+s t o c k a g e  d e s  g r a i n s  d e  c a f é ,  m u l t i - p a y s ,  i n t é g r a n t  u n  d i s p o s i t i f  I o T .
+L e  p r o j e t  e s t  c o m m a n d i t é  p a r  l a  D i r e c t i o n  d e s  O p é r a t i o n s  e t  l a  D i r e c t i o n  Q u a l i t é  d e  F u t u r e K a w a ,  a v e c  l e
+s o u t i e n  d e  l a  D i r e c t i o n  S I .
+L e s  b é n é f i c i a i r e s  d i r e c t s  s o n t  :
+l e s  r e s p o n s a b l e s  d ’ e x p l o i t a t i o n  ( B r é s i l  /  É q u a t e u r  /  C o l o m b i e ) ,
+l e s  r e s p o n s a b l e s  d ’ e n t r e p ô t  ( r é c e p t i o n ,  s t o c k a g e ,  e x p é d i t i o n ) ,
+l e s  é q u i p e s  Q u a l i t é  ( t r a ç a b i l i t é ,  c o n f o r m i t é ) ,
+l e s  é q u i p e s  S u p p l y  C h a i n  ( r o t a t i o n  d e s  s t o c k s ,  p r i o r i t é s  d ’ e x p é d i t i o n ) ,
+l e  s i è g e  ( p i l o t a g e ,  c o n s o l i d a t i o n ,  r e p o r t i n g  g l o b a l ) .
+F i n a l i t é  e t  o b j e c t i f s  ( n i v e a u  “ m a c r o ” )
+F u t u r e K a w a  s o u h a i t e  d i s p o s e r  d ’ u n  o u t i l  u n i q u e  e t  f i a b l e  p e r m e t t a n t  d e  :
+c e n t r a l i s e r  l e  s u i v i  d e s  s t o c k s  p a r  p a y s  e t  p a r  e n t r e p ô t ,
+g a r a n t i r  l a  t r a ç a b i l i t é  d e s  l o t s  d e p u i s  l e u r  e n t r é e  e n  s t o c k a g e ,
+s u r v e i l l e r  l e s  c o n d i t i o n s  d e  c o n s e r v a t i o n  ( t e m p é r a t u r e  /  h u m i d i t é )  v i a  d e s  r e l e v é s  a u t o m a t i s é s ,
+d é t e c t e r  e t  s i g n a l e r  l e s  s i t u a t i o n s  à  r i s q u e  ( d é r i v e s  d e  c o n d i t i o n s ,  l o t s  t r o p  a n c i e n s ) ,
+f o u r n i r  u n e  b a s e  t e c h n i q u e  e t  f o n c t i o n n e l l e  p r é p a r a n t  u n e  é v o l u t i o n  v e r s  l ’ a u t o m a t i s a t i o n  d e s
+é q u i p e m e n t s  d ’ e n t r e p ô t  ( c h a u f f a g e ,  h u m i d i f i c a t i o n ,  a é r a t i o n ) .
+C a d r e  d e  r é a l i s a t i o n  e t  h y p o t h è s e s
+L a  s o l u t i o n  d o i t  ê t r e  d é p l o y a b l e  d a n s  u n  e n v i r o n n e m e n t  m u l t i - s i t e s  /  m u l t i - p a y s ,  a v e c  u n e  a p p r o c h e
+s t a n d a r d i s é e  m a i s  a d a p t a b l e  a u x  s p é c i f i c i t é s  l o c a l e s .
+L e  s y s t è m e  d o i t  f o n c t i o n n e r  a v e c  d e s  c o n t r a i n t e s  “ t e r r a i n ”  :  m a t é r i e l  s i m p l e ,  c o n d i t i o n s  d ’ e x p l o i t a t i o n
+v a r i a b l e s ,  e t  b e s o i n  d e  r o b u s t e s s e .
+L e  p r o j e t  e s t  r é a l i s é  s o u s  f o r m e  d e  p r o t o t y p e  a v a n c é  :  i l  d o i t  d é m o n t r e r  l a  f a i s a b i l i t é  e t  f o u r n i r  u n e
+s o l u t i o n  s u f f i s a m m e n t  a b o u t i e  p o u r  ê t r e  é v a l u é e  e t  p r é s e n t é e  à  u n  j u r y ,  e t  s e r v i r  d e  b a s e  à  u n e
+i n d u s t r i a l i s a t i o n .
+--- PAGE 4 ---
+E x i g e n c e s  g l o b a l e s  a t t e n d u e s
+S a n s  e n t r e r  d a n s  l e s  d é t a i l s  f o n c t i o n n e l s  ( q u i  s e r o n t  p r é c i s é s  e n  p a r t i e  I I I ) ,  l e  c a h i e r  d e s  c h a r g e s  i m p o s e  :
+u n e  s o l u t i o n  a p p l i c a t i v e  ( b a c k e n d  +  f r o n t e n d )  p e r m e t t a n t  c o n s u l t a t i o n  e t  p i l o t a g e ,
+u n e  i n t é g r a t i o n  I o T  s ’ a p p u y a n t  s u r  u n  p r o t o c o l e  a d a p t é  ( M Q T T ) ,
+u n e  p e r s i s t a n c e  f i a b l e  d e s  d o n n é e s  ( b a s e  S Q L ) ,
+u n e  a r c h i t e c t u r e  c o h é r e n t e  a v e c  u n  S I  d i s t r i b u é  ( p a y s  ↔  s i è g e ) ,
+u n  n i v e a u  d e  q u a l i t é  “ p r o j e t ”  :  d o c u m e n t a t i o n ,  t e s t s ,  i n t é g r a t i o n  c o n t i n u e ,  e t  p r é p a r a t i o n  a u
+c h a n g e m e n t .
+P a g e   4
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+I I I .  B E S O I N S  E X P R I M É S  P A R  L E  C L I E N T
+F u t u r e K a w a  e x p r i m e  l e  b e s o i n  d ’ u n e  s o l u t i o n  a p p l i c a t i v e  c o m p l è t e  p e r m e t t a n t  d e  s u i v r e  l e s  l o t s  s t o c k é s
+e t  d e  s u r v e i l l e r  a u t o m a t i q u e m e n t  l e s  c o n d i t i o n s  d e  c o n s e r v a t i o n  d a n s  l e s  e n t r e p ô t s  d e s  t r o i s  p a y s  ( B r é s i l ,
+É q u a t e u r ,  C o l o m b i e ) ,  a v e c  u n e  c o n s o l i d a t i o n  c e n t r a l e  a u  s i è g e .
+1 .  G e s t i o n  d e s  e x p l o i t a t i o n s  /  e n t r e p ô t s  e t  d e s  l o t s  ( s t o c k s )
+O b j e c t i f  :  a s s u r e r  u n e  t r a ç a b i l i t é  f i a b l e  d e s  l o t s  s t o c k é s  e t  f a c i l i t e r  l a  r o t a t i o n  F I F O .
+B e s o i n s  d é t a i l l é s  :
+L a  s o l u t i o n  d o i t  p e r m e t t r e  d e  g é r e r  p l u s i e u r s  e x p l o i t a t i o n s ,  a u  m i n i m u m  3  p a y s  ( B r é s i l ,  É q u a t e u r ,
+C o l o m b i e )  e t  l e u r s  e n t r e p ô t s .
+C h a q u e  e x p l o i t a t i o n  p r o d u i t  d e s  l o t s  d e  g r a i n s  i d e n t i f i é s  p a r  u n  I d  u n i q u e .
+P o u r  c h a q u e  l o t ,  l ’ e n t r e p r i s e  s o u h a i t e  m é m o r i s e r  a u  m i n i m u m  :
+l ’ I d  d u  l o t ,
+l e  p a y s  /  e x p l o i t a t i o n  /  e n t r e p ô t ,
+l a  d a t e  d e  s t o c k a g e  ( e n t r é e  e n  e n t r e p ô t ) ,
+u n  s t a t u t  ( e x  :  c o n f o r m e  /  e n  a l e r t e  /  p é r i m é ,  s e l o n  v o s  c h o i x ) .
+L e s  l o t s  d o i v e n t  p o u v o i r  ê t r e  c o n s u l t é s  e t  t r i é s  p a r  d a t e  d e  s t o c k a g e  a f i n  d ’ a p p l i q u e r  u n e  l o g i q u e  F I F O
+:  e x p é d i e r  e n  p r i o r i t é  l e s  l o t s  l e s  p l u s  a n c i e n s .
+L e  s i è g e  d o i t  p o u v o i r  c o n s u l t e r  l ’ é t a t  d e s  s t o c k s  d e  c h a q u e  p a y s  d e p u i s  u n e  i n t e r f a c e  c e n t r a l i s é e .
+2 .  S u r v e i l l a n c e  I o T  :  t e m p é r a t u r e  e t  h u m i d i t é  p a r  e n t r e p ô t
+O b j e c t i f  :  i n s t r u m e n t e r  l e s  e n t r e p ô t s  a f i n  d e  r e m o n t e r  a u t o m a t i q u e m e n t  l e s  c o n d i t i o n s  d e  s t o c k a g e .
+B e s o i n s  d é t a i l l é s  : C h a q u e  p a y s  d o i t  d i s p o s e r  d ’ u n  m o d u l e  I o T  ( m i c r o c o n t r ô l e u r  +  c a p t e u r  t e m p é r a t u r e  /
+h u m i d i t é )  r é a l i s a n t  d e s  r e l e v é s  a u t o m a t i q u e s  d e  :
+t e m p é r a t u r e  ( ° C )
+h u m i d i t é  ( % )
+L e s  r e l e v é s  d o i v e n t  ê t r e  t r a n s m i s  v i a  u n  b r o k e r  M Q T T  ( l o c a l  a u  p a y s ) .
+L e s  d o n n é e s  d o i v e n t  ê t r e  p e r s i s t é e s  ( s t o c k é e s )  d a n s  u n e  b a s e  d e  d o n n é e s  S Q L .
+L e s  c o n d i t i o n s  i d é a l e s  a t t e n d u e s  d i f f è r e n t  s e l o n  l e  p a y s  :
+B r é s i l  :  2 9 ° C  /  5 5 %  h u m i d i t é
+É q u a t e u r  :  3 1 ° C  /  6 0 %  h u m i d i t é
+C o l o m b i e  :  2 6 ° C  /  8 0 %  h u m i d i t é
+T o l é r a n c e  a c c e p t a b l e  :
+± 3 ° C  p o u r  l a  t e m p é r a t u r e
+± 2 %  p o u r  l ’ h u m i d i t é
+L ’ e n t r e p r i s e  s o u h a i t e  p o u v o i r  c o n s u l t e r  u n  h i s t o r i q u e  d e s  m e s u r e s  a f i n  d e  j u s t i f i e r  l a  t r a ç a b i l i t é  e t
+d ’ a n a l y s e r  l e s  d é r i v e s .
+--- PAGE 5 ---
+P a g e   5
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+3 .  A p p l i c a t i o n  W e b  :  c o n s u l t a t i o n  d e s  s t o c k s  e t  v i s u a l i s a t i o n  d e s  h i s t o r i q u e s
+O b j e c t i f  :  f o u r n i r  u n  o u t i l  u n i q u e  a u x  é q u i p e s  l o c a l e s  e t  a u  s i è g e .
+B e s o i n s  d é t a i l l é s  :  L a  s o l u t i o n  d o i t  p r o p o s e r  u n e  i n t e r f a c e  W e b  p e r m e t t a n t  :
+d e  s é l e c t i o n n e r  u n e  e x p l o i t a t i o n  /  u n  p a y s ,
+d ’ a f f i c h e r  l a  l i s t e  d e s  l o t s  t r i é s  p a r  d a t e  d e  s t o c k a g e ,
+d e  s é l e c t i o n n e r  u n  l o t ,
+d ’ a f f i c h e r  l e s  c o u r b e s  d e  t e m p é r a t u r e  e t  d ’ h u m i d i t é  e n r e g i s t r é e s  d e p u i s  s o n  s t o c k a g e .
+L ’ e n t r e p r i s e  a t t e n d  u n e  i n t e r f a c e  :
+l i s i b l e  p o u r  d e s  u t i l i s a t e u r s  “ t e r r a i n ”  ( e n t r e p ô t ) ,
+e x p l o i t a b l e  p a r  l e  s i è g e  ( s u p e r v i s i o n  /  c o n s o l i d a t i o n ) ,  
+a v e c  u n  a c c è s  r a p i d e  a u x  a l e r t e s  e t  a u  s t a t u t  d e s  l o t s .
+4 .  A l e r t e s  a u t o m a t i q u e s  :  q u a l i t é  e t  p é r e m p t i o n
+O b j e c t i f  :  d é t e c t e r  r a p i d e m e n t  l e s  r i s q u e s  ( q u a l i t é  /  s t o c k s )  e t  d é c l e n c h e r  u n e  a c t i o n .
+B e s o i n s  d é t a i l l é s  :  L a  s o l u t i o n  d o i t  l e v e r  u n e  a l e r t e  a u t o m a t i q u e  d a n s  d e u x  c a s  :
+C o n d i t i o n s  n o n  i d é a l e s  :  t e m p é r a t u r e / h u m i d i t é  h o r s  p l a g e  a c c e p t a b l e  a u  r e g a r d  d u  p a y s  c o n c e r n é .
+L o t  t r o p  a n c i e n  :  u n  l o t  d é p a s s a n t  1  a n  ( 3 6 5  j o u r s )  d e  s t o c k a g e .
+E n  c a s  d ’ a l e r t e ,  u n  e m a i l  d o i t  ê t r e  e n v o y é  a u  r e s p o n s a b l e  d ’ e x p l o i t a t i o n  d u  p a y s  c o n c e r n é .
+L e  d i s p o s i t i f  d ’ a l e r t e  d o i t  ê t r e  d o c u m e n t é  ( r è g l e s ,  s e u i l s ,  f r é q u e n c e  d e  v é r i f i c a t i o n ,  c o n t e n u  d e s  e m a i l s ) .
+5 .  A r c h i t e c t u r e  d i s t r i b u é e  :  p a y s  ( l o c a l )  +  s i è g e  ( c e n t r a l )
+O b j e c t i f  :  r e f l é t e r  l ’ o r g a n i s a t i o n  m u l t i - p a y s  e t  p r é p a r e r  u n e  m o n t é e  e n  c h a r g e .
+B e s o i n s  d é t a i l l é s  :  C h a q u e  p a y s  d o i t  d i s p o s e r  d ’ u n  b a c k e n d  l o c a l  c o n t e n e u r i s é  c o m p r e n a n t  :
+u n e  b a s e  S Q L ,
+u n  b r o k e r  M Q T T  l o c a l ,
+u n e  A P I  R E S T  p e r m e t t a n t  :
+d ’ e n r e g i s t r e r  d e  n o u v e a u x  l o t s ,
+d ’ e x p o s e r  l ’ é t a t  d e s  s t o c k s  e t  l e s  m e s u r e s  a u  s i è g e ,
+u n  d i s p o s i t i f  d ’ a l e r t i n g  p o u r  e m a i l  &  r è g l e s .  
+F i g  1  :  S c h é m a  d e  l ’ i n f r a t r u s c t u r e  g l o b a l e
+--- PAGE 6 ---
+P a g e   6
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+L e  s i è g e  d o i t  d i s p o s e r  d ’ u n  b a c k e n d  c e n t r a l  p e r m e t t a n t  :
+d e  r e q u ê t e r  l e s  b a c k e n d s  d e s  d i f f é r e n t s  p a y s  v i a  d e s  r o u t e s  d ’ A P I ,
+d ’ a l i m e n t e r  l e  f r o n t e n d  e n  i n f o r m a t i o n s  c o n s o l i d é e s  ( s t o c k s ,  m e s u r e s ,  a l e r t e s ) .
+L e  s i è g e  h é b e r g e  é g a l e m e n t  l e  f r o n t e n d  W e b .
+L e s  c h o i x  d ’ a r c h i t e c t u r e  ( m i c r o s e r v i c e s ,  d é c o u p a g e ,  r é s i l i e n c e )  d o i v e n t  ê t r e  j u s t i f i é s .
+6 .  P r é p a r a t i o n  a u  c h a n g e m e n t  :  v e r s  l ’ a u t o m a t i s a t i o n  d e s  e n t r e p ô t s
+O b j e c t i f  :  p r é p a r e r  l a  “ p h a s e  2 ”  e t  a c c o m p a g n e r  l e s  m é t i e r s .
+B e s o i n s  d é t a i l l é s  :
+F u t u r e K a w a  e n v i s a g e  d e  m e t t r e  e n  p l a c e ,  d a n s  c h a q u e  e n t r e p ô t ,  d e s  é q u i p e m e n t s  a u t o m a t i s é s  :
+c h a u f f a g e ,  h u m i d i f i c a t i o n ,  a é r a t i o n ,  p i l o t é s  p a r  l e s  r e l e v é s  t e m p é r a t u r e / h u m i d i t é .
+L e  c l i e n t  é t a n t  e n c o r e  i m p r é c i s ,  l ’ e n t r e p r i s e  d e m a n d e  :
+u n  p r o t o t y p e  d e  s c h é m a  d e  f o n c t i o n n e m e n t  ( l o g i q u e  c a p t e u r s  →  d é c i s i o n  →  a c t i o n n e u r s  +  s é c u r i t é s ) ,
+u n  q u e s t i o n n a i r e  d e s t i n é  à  u n e  p r o c h a i n e  i n t e r v i e w  p o u r  p r é c i s e r  :
+l e s  b e s o i n s  m é t i e r s ,
+l e s  c o n t r a i n t e s  d e  s é c u r i t é ,
+l e s  l i m i t e s  d ’ a u t o m a t i s a t i o n  a c c e p t a b l e s ,
+l e s  m o d a l i t é s  d e  m a i n t e n a n c e  e t  d ’ e x p l o i t a t i o n ,
+l e s  p r i o r i t é s  d e  d é p l o i e m e n t .
+I V .  L I V R A B L E S
+F u t u r e K a w a  a t t e n d  u n e  l i v r a i s o n  s t r u c t u r é e  p e r m e t t a n t  d e  d é m o n t r e r  l a  f a i s a b i l i t é ,  d ’ é v a l u e r  l a  q u a l i t é
+d e  l a  s o l u t i o n ,  e t  d e  p r é p a r e r  u n e  m i s e  e n  p r o d u c t i o n  p r o g r e s s i v e .  L e s  l i v r a b l e s  d e v r o n t  p e r m e t t r e  a u  j u r y
+d ’ a p p r é c i e r  l e  t r a v a i l  d e  c o n c e p t i o n ,  d e  d é v e l o p p e m e n t ,  d e  t e s t s ,  d ’ i n d u s t r i a l i s a t i o n  ( C I / C D )  e t  d e
+p r é p a r a t i o n  a u  c h a n g e m e n t .
+1 .  U n  b a c k e n d  d ’ u n  p a y s  «  e x e m p l e  » ,  c o n t e n e u r i s é
+L ’ e n t r e p r i s e  s o u h a i t e  d i s p o s e r  d ’ u n  b a c k e n d  l o c a l  c o m p l e t  p o u r  u n  p a y s  ( a u  c h o i x  d e s  a p p r e n a n t s )
+c o m p r e n a n t  :
+u n e  A P I  R E S T  p o u r  g é r e r  l e s  l o t s  e t  e x p o s e r  l e s  m e s u r e s ,
+u n e  b a s e  d e  d o n n é e s  S Q L ,
+u n  b r o k e r  M Q T T  l o c a l ,
+u n  m é c a n i s m e  d e  l e v é e  d ’ a l e r t e s  e t  d ’ e n v o i  d ’ e m a i l s  ,
+u n e  e x é c u t i o n  c o n t e n e u r i s é e  ( e x .  D o c k e r  /  D o c k e r  C o m p o s e ) ,  r e p r o d u c t i b l e  s u r  u n  p o s t e  d e
+d é m o n s t r a t i o n .
+A t t e n d u  :  u n  e n s e m b l e  d é m a r r a b l e  v i a  u n e  c o m m a n d e  s i m p l e  ( e x  :  d o c k e r  c o m p o s e  u p )  +
+d o c u m e n t a t i o n  d e  l a n c e m e n t .
+2 .  U n  b a c k e n d  c e n t r a l  «  s i è g e  »  e t  u n  F r o n t e n d  W e b  ( s i è g e )
+F u t u r e K a w a  a t t e n d  l a  s o l u t i o n  “ s i è g e ”  c o m p o s é e  d e  :
+u n  b a c k e n d  c e n t r a l  c a p a b l e  d ’ i n t e r r o g e r  l e s  b a c k e n d s  p a y s  v i a  d e s  r o u t e s  d ’ A P I ,  a f i n  d e  c o n s o l i d e r  :
+l ’ é t a t  d e s  s t o c k s ,
+l e s  m e s u r e s  h i s t o r i q u e s ,
+l e s  a l e r t e s ,
+u n  f r o n t e n d  W e b  p e r m e t t a n t  :
+l a  s é l e c t i o n  d ’ u n e  e x p l o i t a t i o n / p a y s ,
+l ’ a f f i c h a g e  d e s  l o t s  t r i é s  p a r  d a t e  d e  s t o c k a g e ,
+l a  c o n s u l t a t i o n  d ’ u n  l o t  e t  d e  s e s  c o u r b e s  t e m p é r a t u r e / h u m i d i t é ,
+l ’ a c c è s  a u x  i n f o r m a t i o n s  d ’ a l e r t e  e t  a u x  s t a t u t s .
+A t t e n d u  :  s o l u t i o n  u t i l i s a b l e  e n  d é m o n s t r a t i o n ,  c o h é r e n t e  e t  d o c u m e n t é e .
+--- PAGE 7 ---
+P a g e   7
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+3 .  U n  p r o t o t y p e  f o n c t i o n n e l  d u  m o d u l e  I o T
+L ’ é q u i p e  d e v r a  l i v r e r  u n  p r o t o t y p e  o p é r a t i o n n e l  b a s é  s u r  :
+u n  m i c r o c o n t r ô l e u r ,
+u n  c a p t e u r c a p a b l e  d e  :
+r e l e v e r  t e m p é r a t u r e  e t  h u m i d i t é ,
+p u b l i e r  l e s  d o n n é e s  v e r s  l e  b r o k e r  v i a  M Q T T ,
+d é m o n t r e r  l a  r é c e p t i o n  e t  l ’ e x p l o i t a t i o n  d e s  d o n n é e s  p a r  l e  b a c k e n d  ( p e r s i s t é e s  e t  c o n s u l t a b l e s ) .
+A t t e n d u  :  p r e u v e  d e  f o n c t i o n n e m e n t  ( d é m o  l i v e  o u  s c é n a r i o  r e p r o d u c t i b l e ) .
+4 .  D o c u m e n t a t i o n  a r g u m e n t é e  ( d o s s i e r  t e c h n i q u e )
+U n  d o s s i e r  s y n t h é t i q u e  e t  s t r u c t u r é  e s t  e x i g é ,  i n c l u a n t  :
+      4 . 1 .  A r c h i t e c t u r e  g l o b a l e
+d e s c r i p t i o n  d e  l ’ a r c h i t e c t u r e  p a y s  +  s i è g e ,  d e s  f l u x  e t  c o m p o s a n t s ,
+j u s t i f i c a t i o n  d e s  c h o i x  t e c h n o l o g i q u e s  e t  d u  d é c o u p a g e ,
+é l é m e n t s  d e  r o b u s t e s s e  ( t o l é r a n c e  p a n n e s ,  r e p r i s e ,  l o g s ,  s u p e r v i s i o n  –  s e l o n  c h o i x ) .
+      4 . 2 .  C o n c e p t i o n  d u  m o d u l e  I o T
+s c h é m a  d e  c â b l a g e ,  c h o i x  m a t é r i e l ,  l i m i t e s / r i s q u e s ,
+p r o t o c o l e  M Q T T  ( t o p i c s ,  f o r m a t s  p a y l o a d ,  f r é q u e n c e  d ’ e n v o i ) ,
+s t r a t é g i e  d e  r e c o n n e x i o n  /  g e s t i o n  d e s  e r r e u r s  ( s e l o n  v o s  c h o i x ) .
+      4 . 3 .  P l a n s  d e  t e s t s  d é t a i l l é s
+s t r a t é g i e  e t  t y p o l o g i e  ( u n i t a i r e s  /  i n t é g r a t i o n  /  A P I  /  U I  /  e n d - t o - e n d ) ,
+c a s  d e  t e s t ,  d o n n é e s  d e  t e s t ,  c r i t è r e s  d e  r é u s s i t e ,
+g e s t i o n  d e s  a n o m a l i e s  ( c o n s t a t ,  c o r r e c t i o n ,  r e - t e s t ) .
+5 .  P i p e l i n e s  d e  C I / C D  a u t o m a t i s é e s  ( J e n k i n s )
+L ’ e n t r e p r i s e  e x i g e  d e s  p i p e l i n e s  p e r m e t t a n t  d ’ i n d u s t r i a l i s e r  l e  p r o j e t  :
+b u i l d ,
+e x é c u t i o n  a u t o m a t i s é e  d e s  t e s t s ,
+v é r i f i c a t i o n  q u a l i t é  ( s e l o n  o u t i l s  r e t e n u s ) ,
+p a c k a g i n g  ( e x  :  i m a g e s  D o c k e r  /  a r t e f a c t s ) ,
+m i s e  à  d i s p o s i t i o n  d ’ a r t e f a c t s  e x p l o i t a b l e s  p o u r  l a  d é m o .
+A t t e n d u  :  J e n k i n s f i l e  o u  c o n f i g u r a t i o n  J e n k i n s  d o c u m e n t é e  +  p r e u v e  d ’ e x é c u t i o n .
+6 .  T e s t s  l a n ç a b l e s  m a n u e l l e m e n t
+E n  c o m p l é m e n t  d e  l a  C I ,  d e s  t e s t s  d o i v e n t  ê t r e  e x é c u t a b l e  m a n u e l l e m e n t  :
+c o m m a n d e ( s )  s i m p l e ( s ) ,
+d o c u m e n t a t i o n  c l a i r e  ( p r é - r e q u i s ,  v a r i a b l e s ,  j e u x  d e  d o n n é e s ) ,
+r é s u l t a t s  l i s i b l e s  ( l o g s / r a p p o r t ) .
+7 .  C o d e  s o u r c e  v e r s i o n n é  s u r  u n  r e p o s i t o r y  G i t
+F u t u r e K a w a  e x i g e  u n  d é p ô t  G i t  c o m p r e n a n t  :
+l ’ e n s e m b l e  d u  c o d e  ( b a c k e n d  p a y s ,  c e n t r a l ,  f r o n t e n d ,  I o T ,  s c r i p t s ) ,
+l a  s t r u c t u r e  d e  b r a n c h e s  e t  c o m m i t s  c o h é r e n t e ,
+u n  R E A D M E  d e  p r i s e  e n  m a i n ,
+l a  d o c u m e n t a t i o n  e t  s c r i p t s  d e  l a n c e m e n t ,
+é v e n t u e l l e m e n t  d e s  i s s u e s  /  b a c k l o g  ( s e l o n  v o t r e  o r g a n i s a t i o n ) .
+8 .  D o c u m e n t a t i o n  u t i l i s a t e u r  ( o r i e n t a t i o n  m é t i e r )
+U n e  d o c u m e n t a t i o n  o r i e n t é e  “ u t i l i s a t e u r s  m é t i e r s ”  d o i t  ê t r e  f o u r n i e ,  c o m p r e n a n t  :
+p r i s e  e n  m a i n  d e  l ’ i n t e r f a c e  W e b  ( p a r c o u r s ,  é t a p e s ) ,
+c r é a t i o n / c o n s u l t a t i o n  d e s  l o t s ,
+l e c t u r e  d e s  c o u r b e s  ( t e m p / h u m i d i t é ) ,
+c o m p r é h e n s i o n  d e s  a l e r t e s  e t  a c t i o n s  a t t e n d u e s ,
+r é s o l u t i o n  d e s  p r o b l è m e s  s i m p l e s  /  F A Q .
+9 .  P r o t o t y p e  d e  s c h é m a  :  a u t o m a t i s a t i o n  c h a u f f a g e  /  a é r a t i o n  /  h u m i d i f i c a t i o n
+F u t u r e K a w a  a t t e n d  u n  s c h é m a  d e  p r i n c i p e  i l l u s t r a n t  u n  f u t u r  f o n c t i o n n e m e n t  a u t o m a t i s é  :
+c a p t e u r s  →  t r a i t e m e n t / d é c i s i o n  →  a c t i o n n e u r s ,
+c a s  n o m i n a l  e t  c a s  d é g r a d é ,
+s é c u r i t é s  ( s e u i l s ,  a r r ê t  d ’ u r g e n c e  l o g i q u e ,  m a n u e l / a u t o ,  e t c . ) ,
+p o i n t  d ’ i n t é g r a t i o n  a v e c  l a  s o l u t i o n  I o T  e x i s t a n t e .
+--- PAGE 8 ---
+P a g e   8
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+1 0 .  Q u e s t i o n n a i r e  p o u r  l ’ i n t e r v i e w  d e  c a d r a g e  “ p h a s e  2 ”
+U n  q u e s t i o n n a i r e  s t r u c t u r é  e s t  a t t e n d u  p o u r  l a  p r o c h a i n e  r é u n i o n  c l i e n t ,  a f i n  d e  p r é c i s e r  :
+o b j e c t i f s  m é t i e r  d e  l ’ a u t o m a t i s a t i o n ,
+c o n t r a i n t e s  ( s é c u r i t é ,  m a i n t e n a n c e ,  c o û t s ,  r e s p o n s a b i l i t é s ) ,
+t o l é r a n c e s ,  m o d e s  m a n u e l s / a u t o m a t i q u e s ,
+p r i o r i t é s  d e  d é p l o i e m e n t  e t  i n d i c a t e u r s  d e  r é u s s i t e ,
+r i s q u e s  e t  s c é n a r i o s  d ’ i n c i d e n t .
+E n  c o m p l é m e n t  d e s  l i v r a b l e s ,  l ’ é q u i p e  p r o j e t  d e v r a  p r é p a r e r  u n  s u p p o r t  d e  p r é s e n t a t i o n  d e s t i n é  à  l a
+s o u t e n a n c e  f i n a l e  d e v a n t  l e  c l i e n t  ( p u b l i c  t e c h n i q u e ) .  C e  s u p p o r t  d e v r a  s y n t h é t i s e r  l e s  p r i n c i p a u x  é l é m e n t s
+d u  t r a v a i l  r é a l i s é .
+I l  e s t  i m p o r t a n t  d e  s o u l i g n e r  q u e  l ’ é v a l u a t i o n  d e  c e t t e  M S P R  r e p o s e  s u r  l a  c o m b i n a i s o n  d e s  t r o i s  é l é m e n t s
+s u i v a n t s  :  
+l a  q u a l i t é  d u  t r a v a i l  r é a l i s é  a u  c o u r s  d u  p r o j e t ,  
+l a  p e r t i n e n c e  e t  l ’ e x h a u s t i v i t é  d e s  l i v r a b l e s  r e m i s  
+e t  l a  c a p a c i t é  d e  l ’ é q u i p e  à  p r é s e n t e r ,  j u s t i f i e r  e t  v a l o r i s e r  c e  t r a v a i l  l o r s  d e  l a  s o u t e n a n c e  o r a l e .  
+L e s  é q u i p e s  d e v r o n t  d o n c  s ’ a s s u r e r  q u e  l a  s o u t e n a n c e  r e f l è t e  b i e n  l ’ e n s e m b l e  d e s  c o m p é t e n c e s
+a t t e n d u e s  ( c f .  p a g e  1 ) ,  e n  d é m o n t r a n t  à  l a  f o i s  l a  m a î t r i s e  t e c h n i q u e  e t  l a  c a p a c i t é  à  c o m m u n i q u e r
+e f f i c a c e m e n t  a u p r è s  d ’ u n  c l i e n t  p r o f e s s i o n n e l .  
+V .  R E S S O U R C E S  F O U R N I E S
+P o u r  r é a l i s e r  l e  p r o j e t ,  F u t u r e K a w a  ( v i a  l ’ o r g a n i s m e  d e  f o r m a t i o n )  m e t  à  d i s p o s i t i o n  d e s  é q u i p e s  u n
+e n s e m b l e  d e  r e s s o u r c e s  m a t é r i e l l e s ,  c o n t r a i n t e s  t e c h n i q u e s  e t  p r é c o n i s a t i o n s  p e r m e t t a n t  d e  c a d r e r
+l ’ e n v i r o n n e m e n t  d e  r é a l i s a t i o n  e t  d e  d é m o n s t r a t i o n .
+1 .  R e s s o u r c e s  m a t é r i e l s
+C h a q u e  é q u i p e  d i s p o s e  a u  m i n i m u m  d e  :
+1  m i c r o c o n t r ô l e u r  
+1  b r e a d b o a r d
+1  c a p t e u r  t e m p é r a t u r e  /  h u m i d i t é  
+c â b l a g e  d e  p r o t o t y p a g e  ( s e l o n  s t o c k s  d u  c a m p u s )
+I n f o r m a t i o n  l o g i s t i q u e  :  l e s  r é f é r e n c e s  e x a c t e s  d u  m a t é r i e l  s e r o n t  c o m m u n i q u é e s  p a r  m e s s a g e  p r i v é  a u x
+é q u i p e s  ( s e l o n  v o s  p r o c é d u r e s  i n t e r n e s ) .
+2 .  W e b o g r a p h i e
+I o T  /  E S P 3 2  /  C a p t e u r s
+A r d u i n o - E S P 3 2  ( c o r e  o f f i c i e l  E s p r e s s i f  p o u r  A r d u i n o )  —  E s p r e s s i f  S y s t e m s  —  D o c u m e n t a t i o n
+d ’ i n s t a l l a t i o n ,  A P I ,  e x e m p l e s  —  h t t p s : / / d o c s . e s p r e s s i f . c o m / p r o j e c t s / a r d u i n o - e s p 3 2 /  
+M i c r o P y t h o n  –  D o c u m e n t a t i o n  —  M i c r o P y t h o n  —  D o c u m e n t a t i o n  g é n é r a l e  +  m o d u l e s  —
+h t t p s : / / d o c s . m i c r o p y t h o n . o r g /  
+M i c r o P y t h o n  –  Q u i c k  r e f e r e n c e  E S P 3 2  —  M i c r o P y t h o n  —  R é f é r e n c e  r a p i d e  E S P 3 2  ( G P I O ,  W i - F i ,  e t c . )  —
+h t t p s : / / d o c s . m i c r o p y t h o n . o r g / e n / l a t e s t / e s p 3 2 / q u i c k r e f . h t m l  
+A d a f r u i t  L e a r n  –  D H T 1 1 / D H T 2 2  —  A d a f r u i t  —  G u i d e s  c a p t e u r s  t e m p é r a t u r e / h u m i d i t é  ( c â b l a g e ,  c o d e )  —
+h t t p s : / / l e a r n . a d a f r u i t . c o m / d h t  
+M Q T T  /  B r o k e r  /  D é p l o i e m e n t
+M Q T T  v 5 . 0  ( s p é c i f i c a t i o n )  —  O A S I S  —  S p é c i f i c a t i o n  d u  p r o t o c o l e  M Q T T  —  h t t p s : / / d o c s . o a s i s -
+o p e n . o r g / m q t t / m q t t / v 5 . 0 / m q t t - v 5 . 0 . h t m l  
+M o s q u i t t o  ( b r o k e r  M Q T T )  —  E c l i p s e  F o u n d a t i o n  —  D o c u m e n t a t i o n  d u  b r o k e r ,  c o n f i g u r a t i o n  —
+h t t p s : / / m o s q u i t t o . o r g / d o c u m e n t a t i o n /  
+D o c k e r  i m a g e  M o s q u i t t o  ( c o n t e n e u r  o f f i c i e l )  —  D o c k e r  H u b  —  I m a g e  “ e c l i p s e - m o s q u i t t o ”  —
+h t t p s : / / h u b . d o c k e r . c o m / _ / e c l i p s e - m o s q u i t t o  
+N o d e - R E D  ( a l e r t i n g ,  o r c h e s t r a t i o n )
+N o d e - R E D  D o c u m e n t a t i o n  —  O p e n J S  F o u n d a t i o n  —  D o c u m e n t a t i o n  o f f i c i e l l e  —
+h t t p s : / / n o d e r e d . o r g / d o c s /
+N o d e - R E D  C o o k b o o k  —  O p e n J S  F o u n d a t i o n  —  R e c e t t e s  ( M Q T T ,  J S O N ,  p a t t e r n s  d e  f l u x )  —
+h t t p s : / / c o o k b o o k . n o d e r e d . o r g /  
+--- PAGE 9 ---
+P a g e   9
+D i r e c t i o n  I n n o v a t i o n  &  P é d a g o g i e
+C o n t e n e u r i s a t i o n  /  D o c k e r  C o m p o s e
+D o c k e r  D o c u m e n t a t i o n  —  D o c k e r  —  D o c u m e n t a t i o n  o f f i c i e l l e  —  h t t p s : / / d o c s . d o c k e r . c o m /  
+D o c k e r  C o m p o s e  ( r é f é r e n c e )  —  D o c k e r  —  S p é c i f i c a t i o n  e t  u t i l i s a t i o n  d e  C o m p o s e  —
+h t t p s : / / d o c s . d o c k e r . c o m / c o m p o s e /  
+C I / C D  –  J e n k i n s
+J e n k i n s  D o c u m e n t a t i o n  ( U s e r  H a n d b o o k )  —  J e n k i n s  —  D o c u m e n t a t i o n  o f f i c i e l l e  —
+h t t p s : / / w w w . j e n k i n s . i o / d o c /  
+J e n k i n s  P i p e l i n e  —  J e n k i n s  —  C o n c e p t s  +  J e n k i n s f i l e  —  h t t p s : / / w w w . j e n k i n s . i o / d o c / b o o k / p i p e l i n e /  
+A P I  /  D o c u m e n t a t i o n  /  C o n t r a t s
+O p e n A P I  I n i t i a t i v e  —  L i n u x  F o u n d a t i o n  —  P r é s e n t a t i o n  d u  s t a n d a r d  e t  é c o s y s t è m e  —
+h t t p s : / / w w w . o p e n a p i s . o r g /  
+O p e n A P I  S p e c i f i c a t i o n  —  O p e n A P I  I n i t i a t i v e  —  S p é c i f i c a t i o n  o f f i c i e l l e  —
+h t t p s : / / s p e c . o p e n a p i s . o r g / o a s / l a t e s t . h t m l  
+S w a g g e r  ( O p e n A P I  t o o l s )  —  S m a r t B e a r  —  O u t i l s  d e  d o c u m e n t a t i o n / v i s u a l i s a t i o n  —  h t t p s : / / s w a g g e r . i o /  
+P o s t g r e S Q L  D o c u m e n t a t i o n  —  P o s t g r e S Q L  G l o b a l  D e v e l o p m e n t  G r o u p  —  D o c u m e n t a t i o n  o f f i c i e l l e  —
+h t t p s : / / w w w . p o s t g r e s q l . o r g / d o c s /  
+M a r i a D B  D o c u m e n t a t i o n  —  M a r i a D B  F o u n d a t i o n  —  D o c u m e n t a t i o n  o f f i c i e l l e  —
+h t t p s : / / m a r i a d b . c o m / k b / e n / d o c u m e n t a t i o n /
+F r o n t e n d  &  d a t a v i z  
+R e a c t  D o c u m e n t a t i o n  —  M e t a  —  D o c u m e n t a t i o n  o f f i c i e l l e  —  h t t p s : / / r e a c t . d e v /  
+C h a r t . j s  D o c u m e n t a t i o n  —  C h a r t . j s  C o n t r i b u t o r s  —  G r a p h i q u e s  ( c o u r b e s ,  s é r i e s  t e m p o r e l l e s )  —
+h t t p s : / / w w w . c h a r t j s . o r g / d o c s / l a t e s t /  
+S é c u r i t é  a p p l i c a t i v e  
+O W A S P  A P I  S e c u r i t y  T o p  1 0  —  O W A S P  F o u n d a t i o n  —  R i s q u e s  m a j e u r s  s u r  A P I s  +  r e c o m m a n d a t i o n s
+—  h t t p s : / / o w a s p . o r g / w w w - p r o j e c t - a p i - s e c u r i t y /  
+3 .  A s s i s t a n c e  e t  p é r i m è t r e  
+D a n s  l e  c a d r e  d e  c e  p r o j e t  p é d a g o g i q u e ,  l ’ é q u i p e  p r o j e t  n ’ a u r a  a u c u n  c o n t a c t  d i r e c t  a v e c  l e  c l i e n t .  L e
+c a h i e r  d e s  c h a r g e s  c o n s t i t u e  l a  s e u l e  e x p r e s s i o n  o f f i c i e l l e  d u  b e s o i n .  T o u t e  d e m a n d e  d e  c l a r i f i c a t i o n  d e v r a
+ê t r e  t r a i t é e  a v e c  l ’ e n c a d r a n t  p é d a g o g i q u e ,  j o u a n t  l e  r ô l e  d u  c l i e n t .  

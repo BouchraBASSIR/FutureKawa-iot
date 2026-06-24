@@ -1,0 +1,50 @@
+services:
+
+  postgres-central:
+    image: postgres:15-alpine
+    container_name: futurekawa-postgres-central
+    environment:
+      POSTGRES_USER:     ${CENTRAL_DB_USER}
+      POSTGRES_PASSWORD: ${CENTRAL_DB_PASSWORD}
+      POSTGRES_DB:       futurekawa_central
+    volumes:
+      - postgres-central-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CENTRAL_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend-central:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: futurekawa-backend-central
+    ports:
+      - "9000:9000"
+    environment:
+      DATABASE_URL:         postgresql://${CENTRAL_DB_USER}:${CENTRAL_DB_PASSWORD}@postgres-central:5432/futurekawa_central
+      JWT_SECRET:           ${JWT_SECRET}
+      ADMIN_EMAIL:          ${ADMIN_EMAIL}
+      ADMIN_PASSWORD:       ${ADMIN_PASSWORD}
+      COUNTRY_BRESIL_URL:   ${COUNTRY_BRESIL_URL}
+      COUNTRY_EQUATEUR_URL: ${COUNTRY_EQUATEUR_URL}
+      COUNTRY_COLOMBIE_URL: ${COUNTRY_COLOMBIE_URL}
+    depends_on:
+      postgres-central:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:9000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  postgres-central-data:

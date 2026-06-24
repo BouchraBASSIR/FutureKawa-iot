@@ -1,0 +1,487 @@
+// ============================================================
+//  FutureKawa — Jenkinsfile v3
+//
+//  Stages :
+//    1  Checkout
+//    2  Lint (flake8)
+//    3  Tests Unitaires      (pytest tests/unit/)
+//    4  Tests d'Intégration  (pytest tests/integration/)
+//    5  Tests BDD            (pytest-bdd tests/bdd/)
+//    6  SonarQube Backend    (unit + integration + bdd)
+//    7  Build Docker
+//    8  Push Docker Hub
+//    9  Deploy local
+//
+//  CREDENTIALS Jenkins requis :
+//    - "dockerhub-creds" : Username/Password (token Docker Hub)
+//    - "SONAR_TOKEN"     : Secret text (token SonarQube)
+//    - "jwt-secret"      : Secret text (secret JWT partage backend-central/backend-pays)
+//    - "smtp-email"      : Secret text (adresse email emettrice)
+//    - "smtp-password"   : Secret text (mot de passe application SMTP)
+// ============================================================
+
+pipeline {
+
+    agent any
+
+    environment {
+        // ── Docker Hub ───────────────────────────────────────
+        DOCKERHUB_USER    = "josef3215"
+        IMAGE_NAME        = "futurekawa-backend-pays"
+        CREDENTIAL_ID     = "dockerhub-creds"
+        IMAGE_FULL        = "${DOCKERHUB_USER}/${IMAGE_NAME}"
+        IMAGE_TAG         = "${BUILD_NUMBER}"
+
+        // ── SonarQube ────────────────────────────────────────
+        SONAR_HOST        = "http://sonarqube:9000"
+        SONAR_BACKEND_KEY = "futurekawa-backend"
+
+        // ── Tests ────────────────────────────────────────────
+        DATABASE_URL      = "sqlite:///./futurekawa_test.db"
+        MQTT_BROKER       = "localhost"
+        MQTT_PORT         = "1883"
+        AUTH_REQUIRED     = "false"
+        JWT_SECRET        = "test-secret"
+
+        // ── Chemins rapports ─────────────────────────────────
+        TEST_RESULTS_DIR  = "test-results"
+        COVERAGE_DIR      = "coverage-results"
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 50, unit: 'MINUTES')
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
+    stages {
+
+        // ════════════════════════════════════════════════════
+        // STAGE 1 — CHECKOUT
+        // ════════════════════════════════════════════════════
+        stage('1 — Checkout') {
+            steps {
+                echo '====== STAGE 1 : Checkout ======'
+                checkout scm
+                dir('backend-pays') {
+                    sh '''
+                        echo "Commit  : $(git log -1 --format="%H")"
+                        echo "Auteur  : $(git log -1 --format="%an")"
+                        echo "Message : $(git log -1 --format="%s")"
+                        echo "Branch  : $(git branch --show-current 2>/dev/null || echo detached)"
+                        echo ""
+                        echo "── Vérification structure projet ──"
+                        for f in main.py database.py models.py requirements.txt Dockerfile docker-compose.yml; do
+                            [ -f "$f" ] && echo "  OK : $f" || { echo "  MANQUANT : $f"; exit 1; }
+                        done
+                        echo ""
+                        echo "── Vérification structure tests ──"
+                        for d in tests/unit tests/integration tests/bdd tests/bdd/features tests/bdd/steps; do
+                            [ -d "$d" ] && echo "  OK : $d/" || echo "  AVERTISSEMENT : $d/ manquant"
+                        done
+                    '''
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 2 — LINT (flake8)
+        // ════════════════════════════════════════════════════
+        stage('2 — Lint') {
+            steps {
+                echo '====== STAGE 2 : Lint flake8 ======'
+                dir('backend-pays') {
+                    sh '''
+                        python3 -m pip install flake8 --quiet --break-system-packages
+
+                        mkdir -p "${TEST_RESULTS_DIR}"
+
+                        echo "── Erreurs critiques (E9, F63, F7, F82) ──"
+                        python3 -m flake8 . \
+                            --count \
+                            --select=E9,F63,F7,F82 \
+                            --show-source \
+                            --statistics \
+                            --exclude=.git,__pycache__,tests/,htmlcov/,*.egg-info \
+                            --output-file="${TEST_RESULTS_DIR}/flake8-critical.txt" \
+                            || { cat "${TEST_RESULTS_DIR}/flake8-critical.txt"; exit 1; }
+
+                        echo "── Avertissements qualité (max-line 120) ──"
+                        python3 -m flake8 . \
+                            --count \
+                            --max-line-length=120 \
+                            --statistics \
+                            --exclude=.git,__pycache__,tests/,htmlcov/,*.egg-info \
+                            --output-file="${TEST_RESULTS_DIR}/flake8-warnings.txt" \
+                            || true
+
+                        echo "Lint terminé"
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'backend-pays/test-results/flake8-*.txt',
+                                     allowEmptyArchive: true
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 3 — TESTS UNITAIRES
+        // Teste les fonctions/modules de façon isolée
+        // Pas de réseau, pas de BDD PostgreSQL
+        // ════════════════════════════════════════════════════
+        stage('3 — Tests Unitaires') {
+            steps {
+                echo '====== STAGE 3 : Tests unitaires ======'
+                dir('backend-pays') {
+                    sh '''
+                        pip install -r requirements.txt --quiet --break-system-packages
+                        pip install pytest pytest-html coverage pytest-cov httpx --quiet --break-system-packages
+
+                        mkdir -p "${TEST_RESULTS_DIR}/unit" "${COVERAGE_DIR}"
+
+                        python3 -m pytest tests/unit/ \
+                            -v \
+                            --tb=short \
+                            -p no:cacheprovider \
+                            --junitxml="${TEST_RESULTS_DIR}/unit/results.xml" \
+                            --html="${TEST_RESULTS_DIR}/unit/report.html" \
+                            --self-contained-html \
+                            --cov=. \
+                            --cov-report=xml:"${COVERAGE_DIR}/coverage-unit.xml" \
+                            --cov-report=term-missing \
+                            --cov-config=../.coveragerc
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: 'backend-pays/test-results/unit/results.xml'
+                    archiveArtifacts artifacts: 'backend-pays/test-results/unit/report.html, backend-pays/test-results/unit/results.xml, backend-pays/coverage-results/coverage-unit.xml',
+                                     allowEmptyArchive: true
+                    sh 'rm -f backend-pays/futurekawa_test.db || true'
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 4 — TESTS D'INTÉGRATION
+        // Teste les endpoints FastAPI via TestClient
+        // Base SQLite en mémoire (pas de PostgreSQL)
+        // ════════════════════════════════════════════════════
+        stage('4 — Tests Intégration') {
+            steps {
+                echo '====== STAGE 4 : Tests d\'intégration (API) ======'
+                dir('backend-pays') {
+                    sh '''
+                        mkdir -p "${TEST_RESULTS_DIR}/integration"
+
+                        python3 -m pytest tests/integration/ \
+                            -v \
+                            --tb=short \
+                            -p no:cacheprovider \
+                            --junitxml="${TEST_RESULTS_DIR}/integration/results.xml" \
+                            --html="${TEST_RESULTS_DIR}/integration/report.html" \
+                            --self-contained-html \
+                            --cov=. \
+                            --cov-report=xml:"${COVERAGE_DIR}/coverage-integration.xml" \
+                            --cov-report=term-missing \
+                            --cov-append \
+                            --cov-config=../.coveragerc
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: 'backend-pays/test-results/integration/results.xml'
+                    archiveArtifacts artifacts: 'backend-pays/test-results/integration/report.html, backend-pays/test-results/integration/results.xml, backend-pays/coverage-results/coverage-integration.xml',
+                                     allowEmptyArchive: true
+                    sh 'rm -f backend-pays/futurekawa_test.db || true'
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 5 — TESTS BDD (Gherkin / pytest-bdd)
+        // Scénarios métier en langage naturel
+        // Fichiers .feature dans tests/bdd/features/
+        // Steps dans tests/bdd/steps/
+        // ════════════════════════════════════════════════════
+        stage('5 — Tests BDD') {
+            steps {
+                echo '====== STAGE 5 : Tests BDD (Gherkin) ======'
+                dir('backend-pays') {
+                    sh '''
+                        pip install pytest-bdd --quiet --break-system-packages
+
+                        mkdir -p "${TEST_RESULTS_DIR}/bdd" "${COVERAGE_DIR}"
+
+                        python3 -m pytest tests/bdd/ \
+                            -v \
+                            --tb=short \
+                            -p no:cacheprovider \
+                            --junitxml="${TEST_RESULTS_DIR}/bdd/results.xml" \
+                            --html="${TEST_RESULTS_DIR}/bdd/report.html" \
+                            --self-contained-html \
+                            --cov=. \
+                            --cov-report=xml:"${COVERAGE_DIR}/coverage-bdd.xml" \
+                            --cov-report=term-missing \
+                            --cov-append \
+                            --cov-config=../.coveragerc
+
+                        echo "Tests BDD OK"
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: 'backend-pays/test-results/bdd/results.xml'
+                    archiveArtifacts artifacts: 'backend-pays/test-results/bdd/report.html, backend-pays/test-results/bdd/results.xml, backend-pays/coverage-results/coverage-bdd.xml',
+                                     allowEmptyArchive: true, fingerprint: true
+                    sh 'rm -f backend-pays/futurekawa_bdd_test.db || true'
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 6 — SONARQUBE BACKEND
+        // Agrège les 3 rapports de couverture XML
+        // unit + integration + bdd
+        // ════════════════════════════════════════════════════
+        stage('6 — SonarQube Backend') {
+            steps {
+                echo '====== STAGE 6 : SonarQube — Backend Python ======'
+
+                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                    dir('backend-pays') {
+                        sh '''
+                            SONAR_VER="5.0.1.3006"
+                            SCANNER_DIR="${WORKSPACE}/.sonar-scanner-${SONAR_VER}"
+
+                            if [ ! -f "${SCANNER_DIR}/bin/sonar-scanner" ]; then
+                                echo "Téléchargement sonar-scanner CLI..."
+                                SONAR_ZIP="sonar-scanner-cli-${SONAR_VER}-linux.zip"
+                                curl -sSLo "${WORKSPACE}/${SONAR_ZIP}" \
+                                    "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${SONAR_ZIP}"
+                                unzip -q "${WORKSPACE}/${SONAR_ZIP}" -d "${WORKSPACE}/"
+                                mv "${WORKSPACE}/sonar-scanner-${SONAR_VER}-linux" "${SCANNER_DIR}"
+                                rm -f "${WORKSPACE}/${SONAR_ZIP}"
+                            fi
+
+                            TEST_RESULTS_DIR="test-results"
+                            COVERAGE_DIR="coverage-results"
+
+                            # ── Agrégation des 3 rapports de couverture ──
+                            COVERAGE_PATHS=""
+                            for f in \
+                                "${COVERAGE_DIR}/coverage-unit.xml" \
+                                "${COVERAGE_DIR}/coverage-integration.xml" \
+                                "${COVERAGE_DIR}/coverage-bdd.xml"; do
+                                [ -f "$f" ] && COVERAGE_PATHS="${COVERAGE_PATHS}${f},"
+                            done
+                            COVERAGE_PATHS="${COVERAGE_PATHS%,}"
+
+                            # ── Agrégation des 3 rapports JUnit ──
+                            JUNIT_PATHS=""
+                            for f in \
+                                "${TEST_RESULTS_DIR}/unit/results.xml" \
+                                "${TEST_RESULTS_DIR}/integration/results.xml" \
+                                "${TEST_RESULTS_DIR}/bdd/results.xml"; do
+                                [ -f "$f" ] && JUNIT_PATHS="${JUNIT_PATHS}${f},"
+                            done
+                            JUNIT_PATHS="${JUNIT_PATHS%,}"
+
+                            echo "Couverture : $COVERAGE_PATHS"
+                            echo "JUnit      : $JUNIT_PATHS"
+
+                            "${SCANNER_DIR}/bin/sonar-scanner" \
+                                -Dsonar.projectKey="futurekawa-backend" \
+                                -Dsonar.projectName="FutureKawa Backend" \
+                                -Dsonar.projectVersion="${BUILD_NUMBER}" \
+                                -Dsonar.sources=. \
+                                -Dsonar.exclusions="tests/**,**/__pycache__/**,**/*.pyc,.git/**,htmlcov/**" \
+                                -Dsonar.tests=tests \
+                                -Dsonar.test.inclusions="tests/**/*.py" \
+                                -Dsonar.language=py \
+                                -Dsonar.python.version=3.11 \
+                                -Dsonar.python.coverage.reportPaths="${COVERAGE_PATHS}" \
+                                -Dsonar.python.xunit.reportPath="${JUNIT_PATHS}" \
+                                -Dsonar.sourceEncoding=UTF-8 \
+                                -Dsonar.host.url="http://sonarqube:9000" \
+                                -Dsonar.token="${SONAR_TOKEN}" \
+                                -Dsonar.scm.disabled=true \
+                                -Dsonar.qualitygate.wait=false \
+                                -Dsonar.qualitygate.timeout=300
+                        '''
+                    }
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 7 — BUILD DOCKER
+        // ════════════════════════════════════════════════════
+        stage('7 — Build Docker') {
+            steps {
+                echo '====== STAGE 7 : Build image Docker ======'
+                dir('backend-pays') {
+                    sh '''
+                        GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+                        docker build \
+                            --no-cache \
+                            --tag "${IMAGE_FULL}:${IMAGE_TAG}" \
+                            --tag "${IMAGE_FULL}:latest" \
+                            --label "org.opencontainers.image.revision=${GIT_SHA}" \
+                            --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                            --label "futurekawa.build=${BUILD_NUMBER}" \
+                            .
+
+                        docker images "${IMAGE_FULL}" \
+                            --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+
+                        echo "Image ${IMAGE_FULL}:${IMAGE_TAG} construite"
+                    '''
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 8 — PUSH DOCKER HUB
+        // ════════════════════════════════════════════════════
+        stage('8 — Push Docker Hub') {
+            steps {
+                echo '====== STAGE 8 : Push Docker Hub ======'
+                withCredentials([usernamePassword(
+                    credentialsId: "${CREDENTIAL_ID}",
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PASS'
+                )]) {
+                    sh '''
+                        echo "${DH_PASS}" | docker login -u "${DH_USER}" --password-stdin
+                        docker push "${IMAGE_FULL}:${IMAGE_TAG}"
+                        docker push "${IMAGE_FULL}:latest"
+                        echo "${IMAGE_FULL}:${IMAGE_TAG} disponible sur Docker Hub"
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        // STAGE 9 — DEPLOY LOCAL
+        // Pull depuis Docker Hub + compose up + health check
+        // ════════════════════════════════════════════════════
+        stage('9 — Deploy local') {
+            steps {
+                echo '====== STAGE 9 : Déploiement local sécurisé ======'
+                dir('backend-pays') {
+                    // On récupère tous les credentials nécessaires
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerhub-creds', 
+                            usernameVariable: 'DH_USER', 
+                            passwordVariable: 'DH_PASS'
+                        ),
+                        string(credentialsId: 'smtp-email',    variable: 'SENDER_EMAIL'),
+                        string(credentialsId: 'smtp-password', variable: 'SENDER_PASSWORD'),
+                        string(credentialsId: 'jwt-secret',    variable: 'JWT_SECRET')
+                    ]) {
+                        sh '''
+                            # ── 1. Config mosquitto dans un volume nommé ──
+                            docker volume create futurekawa_mosquitto_config 2>/dev/null || true
+                            docker run --rm \
+                                -v futurekawa_mosquitto_config:/config \
+                                alpine sh -c "echo 'listener 1883' > /config/mosquitto.conf && echo 'allow_anonymous true' >> /config/mosquitto.conf"
+
+                            # ── 2. Pull explicite depuis Docker Hub ──
+                            echo "${DH_PASS}" | docker login -u "${DH_USER}" --password-stdin
+                            docker pull "${IMAGE_FULL}:${IMAGE_TAG}"
+                            docker logout
+
+                            # ── 3. Arrêt propre de l'ancienne stack ──
+                            docker compose down --remove-orphans 2>/dev/null || true
+                            sleep 5
+
+                            # ── 4. Démarrage avec injection des secrets en variables d'environnement ──
+                            # Les variables SENDER_EMAIL et SENDER_PASSWORD sont ici lues par docker-compose
+                            # si vous les avez déclarées avec ${VARIABLE} dans votre docker-compose.yml
+                            SENDER_EMAIL="${SENDER_EMAIL}" \
+                            SENDER_PASSWORD="${SENDER_PASSWORD}" \
+                            JWT_SECRET="${JWT_SECRET}" \
+                            BACKEND_IMAGE="${IMAGE_FULL}:${IMAGE_TAG}" \
+                            docker compose up -d
+
+                            # ── 5. Health check via Docker inspect ──
+                            echo "Attente démarrage du backend..."
+                            MAX=12; COUNT=0
+                            until [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-bresil 2>/dev/null)" = "true" ] || [ $COUNT -eq $MAX ]; do
+                                echo "  En attente... $((COUNT+1))/$MAX"
+                                sleep 10
+                                COUNT=$((COUNT+1))
+                            done
+
+                            if [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-bresil 2>/dev/null)" = "true" ]; then
+                                echo "Backend opérationnel (Running)."
+                            else
+                                echo "Backend n'a pas démarré — Logs :"
+                                docker compose logs --tail=50
+                                exit 1
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
+    } // end stages
+
+    post {
+        success {
+            sh '''
+                cat > build-info.txt <<EOF
+FutureKawa — Build Info
+=======================
+Build N°   : ${BUILD_NUMBER}
+Date       : $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+Commit     : ${GIT_COMMIT}
+Branch     : ${GIT_BRANCH}
+Image      : ${IMAGE_FULL}:${IMAGE_TAG}
+SonarQube  : ${SONAR_HOST}/projects
+API        : http://localhost:8000
+Docs       : http://localhost:8000/docs
+EOF
+                cat build-info.txt
+            '''
+            archiveArtifacts artifacts: 'build-info.txt', fingerprint: true
+            echo '====== PIPELINE RÉUSSI ======'
+        }
+
+        failure {
+            echo '====== PIPELINE ÉCHOUÉ — voir le stage rouge ======'
+        }
+
+        always {
+            sh 'docker image prune -f 2>/dev/null || true'
+            publishHTML(target: [
+                allowMissing          : true,
+                alwaysLinkToLastBuild : true,
+                keepAll               : true,
+                reportDir             : 'backend-pays/test-results',
+                reportFiles           : '*/report.html',
+                reportName            : 'Rapports de Tests'
+            ])
+            cleanWs()
+        }
+    }
+}
