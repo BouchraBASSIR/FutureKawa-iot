@@ -1,11 +1,16 @@
 import asyncio
 import logging
 import httpx
-from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi import FastAPI, HTTPException, Query, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any, Optional
 
 from config import get_configured_countries
+from database import engine, SessionLocal
+from models import Base
+from auth import router as auth_router, extract_bearer
+from users import router as users_router
+from seed import run_seed
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend-central")
@@ -27,7 +32,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+app.include_router(users_router)
+
 COUNTRIES = get_configured_countries()
+
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
+        run_seed(db)
 
 
 # ── Utilitaire HTTP ──────────────────────────────────────────────────────────
@@ -38,23 +53,26 @@ async def fetch_from_country(
     endpoint: str,
     method: str = "GET",
     json_data: Any = None,
+    token: Optional[str] = None,
 ) -> Optional[Any]:
     """
     Proxy HTTP vers un backend pays.
     Retourne le JSON parsé ou None si le backend est injoignable / renvoie une erreur.
+    Propage le JWT (Authorization: Bearer) quand fourni.
     """
     if country_id not in COUNTRIES:
         logger.warning("Pays '%s' absent de la configuration.", country_id)
         return None
 
     url = f"{COUNTRIES[country_id]['url'].rstrip('/')}{endpoint}"
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
     try:
         if method == "GET":
-            response = await client.get(url, timeout=1.5)
+            response = await client.get(url, headers=headers, timeout=1.5)
         elif method == "POST":
-            response = await client.post(url, json=json_data, timeout=1.5)
+            response = await client.post(url, json=json_data, headers=headers, timeout=1.5)
         elif method == "PUT":
-            response = await client.put(url, json=json_data, timeout=1.5)
+            response = await client.put(url, json=json_data, headers=headers, timeout=1.5)
         else:
             logger.error("Méthode HTTP non supportée : %s", method)
             return None

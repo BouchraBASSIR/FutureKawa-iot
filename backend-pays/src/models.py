@@ -1,8 +1,8 @@
 """
-FutureKawa — Modèles SQLAlchemy (MLD complète)
-13 tables : CONFIG, EXPLOITATION, ENTREPOT, CAPTEUR, MESURE, LOT,
-            ALERTE_MESURE, ALERTE_LOT, UTILISATEUR, ROLE,
-            UTILISATEUR_ROLE, UTILISATEUR_EXPLOITATION, UTILISATEUR_ENTREPOT
+FutureKawa — Modèles SQLAlchemy (backend pays)
+8 tables : CONFIG, EXPLOITATION, ENTREPOT, CAPTEUR, MESURE, LOT,
+           ALERTE_MESURE, ALERTE_LOT
+La gestion des utilisateurs et des rôles est centralisée dans backend-central.
 """
 from sqlalchemy import (
     Column, Integer, Float, String, DateTime, Boolean, ForeignKey
@@ -40,9 +40,8 @@ class Exploitation(Base):
     nom             = Column(String,  nullable=False)
     id_config       = Column(Integer, ForeignKey("config.id_config"), nullable=False)
 
-    config                    = relationship("Config",       back_populates="exploitations")
-    entrepots                 = relationship("Entrepot",     back_populates="exploitation")
-    utilisateur_exploitations = relationship("UtilisateurExploitation", back_populates="exploitation")
+    config    = relationship("Config",   back_populates="exploitations")
+    entrepots = relationship("Entrepot", back_populates="exploitation")
 
 
 # ── ENTREPOT ─────────────────────────────────────────────────
@@ -55,10 +54,9 @@ class Entrepot(Base):
     localisation    = Column(String,  nullable=False)
     id_exploitation = Column(Integer, ForeignKey("exploitation.id_exploitation"), nullable=False)
 
-    exploitation          = relationship("Exploitation",        back_populates="entrepots")
-    capteurs              = relationship("Capteur",             back_populates="entrepot")
-    lots                  = relationship("Lot",                 back_populates="entrepot")
-    utilisateur_entrepots = relationship("UtilisateurEntrepot", back_populates="entrepot")
+    exploitation = relationship("Exploitation", back_populates="entrepots")
+    capteurs     = relationship("Capteur",      back_populates="entrepot")
+    lots         = relationship("Lot",          back_populates="entrepot")
 
 
 # ── CAPTEUR ──────────────────────────────────────────────────
@@ -100,11 +98,10 @@ class Lot(Base):
     date_stockage  = Column(DateTime, default=datetime.utcnow, nullable=False)
     statut         = Column(String,   default="conforme", nullable=False)
     id_entrepot    = Column(Integer,  ForeignKey("entrepot.id_entrepot"), nullable=False)
-    id_utilisateur = Column(Integer,  ForeignKey("utilisateur.id_utilisateur"), nullable=False)
+    id_utilisateur = Column(Integer,  nullable=True)  # ID utilisateur depuis backend-central (pas de FK cross-base)
 
-    entrepot    = relationship("Entrepot",    back_populates="lots")
-    utilisateur = relationship("Utilisateur", back_populates="lots")
-    alertes_lot = relationship("AlerteLot",   back_populates="lot")
+    entrepot    = relationship("Entrepot",  back_populates="lots")
+    alertes_lot = relationship("AlerteLot", back_populates="lot")
 
 
 # ── ALERTE_MESURE ────────────────────────────────────────────
@@ -139,74 +136,3 @@ class AlerteLot(Base):
     lot = relationship("Lot", back_populates="alertes_lot")
 
 
-# ── UTILISATEUR ──────────────────────────────────────────────
-
-class Utilisateur(Base):
-    __tablename__ = "utilisateur"
-
-    id_utilisateur = Column(Integer, primary_key=True, autoincrement=True)
-    nom            = Column(String,  nullable=False)
-    prenom         = Column(String,  nullable=False)
-    email          = Column(String,  unique=True, nullable=False)
-    mot_de_passe   = Column(String,  nullable=False)
-    actif          = Column(Boolean, default=True, nullable=False)
-
-    lots                      = relationship("Lot",                     back_populates="utilisateur")
-    utilisateur_roles         = relationship("UtilisateurRole",         back_populates="utilisateur")
-    utilisateur_exploitations = relationship("UtilisateurExploitation", back_populates="utilisateur")
-    utilisateur_entrepots     = relationship("UtilisateurEntrepot",     back_populates="utilisateur")
-
-
-# ── ROLE ─────────────────────────────────────────────────────
-
-class Role(Base):
-    __tablename__ = "role"
-
-    id_role     = Column(Integer, primary_key=True, autoincrement=True)
-    libelle     = Column(String,  unique=True, nullable=False)
-    description = Column(String,  nullable=True)
-
-    utilisateur_roles = relationship("UtilisateurRole", back_populates="role")
-
-
-# ── UTILISATEUR_ROLE ─────────────────────────────────────────
-
-class UtilisateurRole(Base):
-    __tablename__ = "utilisateur_role"
-
-    id_utilisateur_role = Column(Integer, primary_key=True, autoincrement=True)
-    id_utilisateur      = Column(Integer, ForeignKey("utilisateur.id_utilisateur"), nullable=False)
-    id_role             = Column(Integer, ForeignKey("role.id_role"), nullable=False)
-
-    utilisateur = relationship("Utilisateur", back_populates="utilisateur_roles")
-    role        = relationship("Role",        back_populates="utilisateur_roles")
-
-
-# ── UTILISATEUR_EXPLOITATION ─────────────────────────────────
-
-class UtilisateurExploitation(Base):
-    __tablename__ = "utilisateur_exploitation"
-
-    id_utilisateur_exploitation = Column(Integer,  primary_key=True, autoincrement=True)
-    id_utilisateur              = Column(Integer,  ForeignKey("utilisateur.id_utilisateur"), nullable=False)
-    id_exploitation             = Column(Integer,  ForeignKey("exploitation.id_exploitation"), nullable=False)
-    date_debut                  = Column(DateTime, default=datetime.utcnow, nullable=False)
-    date_fin                    = Column(DateTime, nullable=True)
-
-    utilisateur  = relationship("Utilisateur",  back_populates="utilisateur_exploitations")
-    exploitation = relationship("Exploitation", back_populates="utilisateur_exploitations")
-
-
-# ── UTILISATEUR_ENTREPOT ─────────────────────────────────────
-
-class UtilisateurEntrepot(Base):
-    __tablename__ = "utilisateur_entrepot"
-
-    id_utilisateur_entrepot = Column(Integer,  primary_key=True, autoincrement=True)
-    id_utilisateur          = Column(Integer,  ForeignKey("utilisateur.id_utilisateur"), nullable=False)
-    id_entrepot             = Column(Integer,  ForeignKey("entrepot.id_entrepot"), nullable=False)
-    date_debut              = Column(DateTime, default=datetime.utcnow, nullable=False)
-    date_fin                = Column(DateTime, nullable=True)
-
-    utilisateur = relationship("Utilisateur", back_populates="utilisateur_entrepots")
-    entrepot    = relationship("Entrepot",    back_populates="utilisateur_entrepots")

@@ -20,11 +20,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from database import get_db, engine, SessionLocal
-from models import (
-    Base, Config, Exploitation, Entrepot, Capteur, Mesure, Lot,
-    AlerteMesure, AlerteLot, Utilisateur, Role,
-    UtilisateurRole, UtilisateurExploitation, UtilisateurEntrepot
-)
+from models import Base, Config, Exploitation, Entrepot, Capteur, Mesure, Lot, AlerteMesure, AlerteLot
+from auth_middleware import get_current_user, require_role, can_access_entrepot
 
 # =====================
 # INITIALISATION
@@ -130,57 +127,9 @@ class MesureCreate(BaseModel):
 
 # -- Lot --
 class LotCreate(BaseModel):
-    id_lot         : str
-    id_entrepot    : int
-    id_utilisateur : int
-
-
-# -- Utilisateur --
-class UtilisateurCreate(BaseModel):
-    nom          : str
-    prenom       : str
-    email        : str
-    mot_de_passe : str
-    actif        : Optional[bool] = True
-
-
-class UtilisateurUpdate(BaseModel):
-    nom          : Optional[str]  = None
-    prenom       : Optional[str]  = None
-    email        : Optional[str]  = None
-    mot_de_passe : Optional[str]  = None
-    actif        : Optional[bool] = None
-
-
-# -- Role --
-class RoleCreate(BaseModel):
-    libelle     : str
-    description : Optional[str] = None
-
-
-class RoleUpdate(BaseModel):
-    libelle     : Optional[str] = None
-    description : Optional[str] = None
-
-
-# -- UtilisateurRole --
-class UtilisateurRoleCreate(BaseModel):
-    id_utilisateur : int
-    id_role        : int
-
-
-# -- UtilisateurExploitation --
-class UtilisateurExploitationCreate(BaseModel):
-    id_utilisateur  : int
-    id_exploitation : int
-    date_fin        : Optional[datetime] = None
-
-
-# -- UtilisateurEntrepot --
-class UtilisateurEntrepotCreate(BaseModel):
-    id_utilisateur : int
-    id_entrepot    : int
-    date_fin       : Optional[datetime] = None
+    id_lot        : str
+    id_entrepot   : int
+    date_stockage : Optional[datetime] = None
 
 
 # =====================
@@ -727,22 +676,23 @@ def get_mesures_par_entrepot(id_entrepot: int, db: Session = Depends(get_db)):
 
 # ── Lots ─────────────────────────────────────────────────────
 @app.post("/lots", status_code=status.HTTP_201_CREATED)
-def creer_lot(lot: LotCreate, db: Session = Depends(get_db)):
+def creer_lot(
+    lot: LotCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
     entrepot = db.query(Entrepot).filter(Entrepot.id_entrepot == lot.id_entrepot).first()
     if not entrepot:
         raise HTTPException(status_code=404, detail="Entrepot introuvable")
 
-    utilisateur = db.query(Utilisateur).filter(
-        Utilisateur.id_utilisateur == lot.id_utilisateur
-    ).first()
-    if not utilisateur:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    if not can_access_entrepot(lot.id_entrepot, current_user):
+        raise HTTPException(status_code=403, detail="Accès non autorisé à cet entrepôt")
 
     nouveau_lot = Lot(
         id_lot         = lot.id_lot,
         id_entrepot    = lot.id_entrepot,
-        id_utilisateur = lot.id_utilisateur,
-        date_stockage  = datetime.utcnow(),
+        id_utilisateur = int(current_user["sub"]),
+        date_stockage  = lot.date_stockage or datetime.utcnow(),
         statut         = "conforme"
     )
     db.add(nouveau_lot)
@@ -1008,256 +958,3 @@ def get_stats_dashboard(db: Session = Depends(get_db)):
     }
 
 
-# ── Utilisateurs ─────────────────────────────────────────────
-@app.post("/utilisateurs", status_code=status.HTTP_201_CREATED)
-def creer_utilisateur(data: UtilisateurCreate, db: Session = Depends(get_db)):
-    existing = db.query(Utilisateur).filter(Utilisateur.email == data.email).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Un utilisateur avec cet email existe deja")
-
-    utilisateur = Utilisateur(
-        nom          = data.nom,
-        prenom       = data.prenom,
-        email        = data.email,
-        mot_de_passe = data.mot_de_passe,
-        actif        = data.actif
-    )
-    db.add(utilisateur)
-    db.commit()
-    db.refresh(utilisateur)
-    return utilisateur
-
-
-@app.get("/utilisateurs")
-def get_utilisateurs(db: Session = Depends(get_db)):
-    return db.query(Utilisateur).all()
-
-
-@app.get("/utilisateurs/{id_utilisateur}")
-def get_utilisateur(id_utilisateur: int, db: Session = Depends(get_db)):
-    utilisateur = db.query(Utilisateur).filter(
-        Utilisateur.id_utilisateur == id_utilisateur
-    ).first()
-    if not utilisateur:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouve")
-    return utilisateur
-
-
-@app.put("/utilisateurs/{id_utilisateur}")
-def update_utilisateur(id_utilisateur: int, data: UtilisateurUpdate, db: Session = Depends(get_db)):
-    utilisateur = db.query(Utilisateur).filter(
-        Utilisateur.id_utilisateur == id_utilisateur
-    ).first()
-    if not utilisateur:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouve")
-
-    if data.nom          is not None: utilisateur.nom          = data.nom
-    if data.prenom       is not None: utilisateur.prenom       = data.prenom
-    if data.email        is not None: utilisateur.email        = data.email
-    if data.mot_de_passe is not None: utilisateur.mot_de_passe = data.mot_de_passe
-    if data.actif        is not None: utilisateur.actif        = data.actif
-    db.commit()
-    db.refresh(utilisateur)
-    return utilisateur
-
-
-@app.delete("/utilisateurs/{id_utilisateur}")
-def supprimer_utilisateur(id_utilisateur: int, db: Session = Depends(get_db)):
-    utilisateur = db.query(Utilisateur).filter(
-        Utilisateur.id_utilisateur == id_utilisateur
-    ).first()
-    if not utilisateur:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouve")
-    db.delete(utilisateur)
-    db.commit()
-    return {"message": "Utilisateur supprime"}
-
-
-# ── Roles ────────────────────────────────────────────────────
-@app.post("/roles", status_code=status.HTTP_201_CREATED)
-def creer_role(data: RoleCreate, db: Session = Depends(get_db)):
-    existing = db.query(Role).filter(Role.libelle == data.libelle).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Un role avec ce libelle existe deja")
-
-    role = Role(libelle=data.libelle, description=data.description)
-    db.add(role)
-    db.commit()
-    db.refresh(role)
-    return role
-
-
-@app.get("/roles")
-def get_roles(db: Session = Depends(get_db)):
-    return db.query(Role).all()
-
-
-@app.get("/roles/{id_role}")
-def get_role(id_role: int, db: Session = Depends(get_db)):
-    role = db.query(Role).filter(Role.id_role == id_role).first()
-    if not role:
-        raise HTTPException(status_code=404, detail="Role non trouve")
-    return role
-
-
-@app.delete("/roles/{id_role}")
-def supprimer_role(id_role: int, db: Session = Depends(get_db)):
-    role = db.query(Role).filter(Role.id_role == id_role).first()
-    if not role:
-        raise HTTPException(status_code=404, detail="Role non trouve")
-    db.delete(role)
-    db.commit()
-    return {"message": "Role supprime"}
-
-
-# ── Utilisateur-Role / Exploitation / Entrepot ────────────────
-@app.post("/utilisateur-roles", status_code=status.HTTP_201_CREATED)
-def creer_utilisateur_role(data: UtilisateurRoleCreate, db: Session = Depends(get_db)):
-    ur = UtilisateurRole(id_utilisateur=data.id_utilisateur, id_role=data.id_role)
-    db.add(ur)
-    db.commit()
-    db.refresh(ur)
-    return ur
-
-
-@app.get("/utilisateur-roles")
-def get_utilisateur_roles(db: Session = Depends(get_db)):
-    return db.query(UtilisateurRole).all()
-
-
-@app.post("/utilisateur-exploitations", status_code=status.HTTP_201_CREATED)
-def creer_utilisateur_exploitation(data: UtilisateurExploitationCreate, db: Session = Depends(get_db)):
-    ue = UtilisateurExploitation(
-        id_utilisateur  = data.id_utilisateur,
-        id_exploitation = data.id_exploitation,
-        date_fin        = data.date_fin
-    )
-    db.add(ue)
-    db.commit()
-    db.refresh(ue)
-    return ue
-
-
-@app.get("/utilisateur-exploitations")
-def get_utilisateur_exploitations(db: Session = Depends(get_db)):
-    return db.query(UtilisateurExploitation).all()
-
-
-@app.post("/utilisateur-entrepots", status_code=status.HTTP_201_CREATED)
-def creer_utilisateur_entrepot(data: UtilisateurEntrepotCreate, db: Session = Depends(get_db)):
-    ue = UtilisateurEntrepot(
-        id_utilisateur = data.id_utilisateur,
-        id_entrepot    = data.id_entrepot,
-        date_fin       = data.date_fin
-    )
-    db.add(ue)
-    db.commit()
-    db.refresh(ue)
-    return ue
-
-
-@app.get("/utilisateur-entrepots")
-def get_utilisateur_entrepots(db: Session = Depends(get_db)):
-    return db.query(UtilisateurEntrepot).all()
-
-
-@app.delete("/utilisateur-entrepots/{id_utilisateur_entrepot}")
-def supprimer_utilisateur_entrepot(id_utilisateur_entrepot: int, db: Session = Depends(get_db)):
-    ue = db.query(UtilisateurEntrepot).filter(
-        UtilisateurEntrepot.id_utilisateur_entrepot == id_utilisateur_entrepot
-    ).first()
-    if not ue:
-        raise HTTPException(status_code=404, detail="Association non trouvee")
-    db.delete(ue)
-    db.commit()
-    return {"message": "Association utilisateur-entrepot supprimee"}
-
-
-@app.get("/mesures/derniers-jours/{jours}")
-def get_mesures_derniers_jours(jours: int, db: Session = Depends(get_db)):
-    limite = datetime.utcnow() - timedelta(days=jours)
-    mesures = db.query(Mesure).filter(
-        Mesure.date_mesure >= limite
-    ).order_by(Mesure.date_mesure.asc()).all()
-    return mesures
-
-# Description : Retourne stats consolidées pour le dashboard
-# Retour : KPI (total lots, alertes, temp/humidité moyenne)
-
-@app.get("/stats/dashboard")
-def get_stats_dashboard(db: Session = Depends(get_db)):
-    config = db.query(Config).first()
-    
-    # Compter les lots par statut
-    total_lots = db.query(Lot).count()
-    conforme_lots = db.query(Lot).filter(Lot.statut == "conforme").count()
-    alerte_lots = db.query(Lot).filter(Lot.statut == "en_alerte").count()
-    perime_lots = db.query(Lot).filter(Lot.statut == "perime").count()
-    
-    # Compter les alertes non-lues
-    alertes_mesures_non_lues = db.query(AlerteMesure).filter(
-        AlerteMesure.statut == "non_lue"
-    ).count()
-    alertes_lots_non_lues = db.query(AlerteLot).filter(
-        AlerteLot.statut == "non_lue"
-    ).count()
-    alertes_actives = alertes_mesures_non_lues + alertes_lots_non_lues
-    
-    # Calculer moyennes temp/humidité (dernières 500 mesures)
-    mesures = db.query(Mesure).order_by(Mesure.date_mesure.desc()).limit(500).all()
-    if mesures:
-        temp_moy = sum(m.temperature for m in mesures) / len(mesures)
-        hum_moy = sum(m.humidite for m in mesures) / len(mesures)
-    else:
-        temp_moy = 0
-        hum_moy = 0
-    
-    return {
-        "pays": config.pays if config else "inconnu",
-        "total_lots": total_lots,
-        "conforme_lots": conforme_lots,
-        "alerte_lots": alerte_lots,
-        "perime_lots": perime_lots,
-        "alertes_actives": alertes_actives,
-        "temp_moyenne": round(temp_moy, 1),
-        "humidite_moyenne": round(hum_moy, 1),
-    }
-
-# Description : Retourne historique temp/humidité DEPUIS le stockage d'un lot
-# Utilisé pour : Page détail d'un lot (courbes)
-
-@app.get("/lots/{lot_id}/mesures")
-def get_lot_mesures(lot_id: str, db: Session = Depends(get_db)):
-    lot = db.query(Lot).filter(Lot.id_lot == lot_id).first()
-    if not lot:
-        raise HTTPException(status_code=404, detail="Lot non trouve")
-    
-    # Récupérer tous les capteurs de l'entrepôt
-    capteurs = db.query(Capteur).filter(
-        Capteur.id_entrepot == lot.id_entrepot
-    ).all()
-    capteur_ids = [c.id_capteur for c in capteurs]
-    
-    # Mesures depuis la date de stockage du lot
-    mesures = db.query(Mesure).filter(
-        Mesure.id_capteur.in_(capteur_ids),
-        Mesure.date_mesure >= lot.date_stockage
-    ).order_by(Mesure.date_mesure.asc()).all()
-    
-    return mesures
-
-@app.get("/mesures/par-entrepot/{id_entrepot}")
-def get_mesures_par_entrepot(id_entrepot: int, db: Session = Depends(get_db)):
-    """Retourne toutes les mesures d'un entrepôt"""
-    # Récupérer tous les capteurs de cet entrepôt
-    capteurs = db.query(Capteur).filter(
-        Capteur.id_entrepot == id_entrepot
-    ).all()
-    capteur_ids = [c.id_capteur for c in capteurs]
-    
-    # Récupérer les mesures
-    mesures = db.query(Mesure).filter(
-        Mesure.id_capteur.in_(capteur_ids)
-    ).order_by(Mesure.date_mesure.desc()).all()
-    
-    return mesures

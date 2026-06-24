@@ -1,7 +1,11 @@
-/history 
+/history
 .history
 .venv
 /venv
 /backend-pays/venv
 /backend-central/src/__pycache__
 /backend-pays/src/__pycache__
+
+# Variables d'environnement — ne jamais commiter
+.env
+**/.env
