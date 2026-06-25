@@ -60,14 +60,19 @@ pipeline {
         }
 
         // =====================================================
-        // STAGE 3 : Installation des dépendances Python
+        // STAGE 3 : Création de l'environnement virtuel Python
+        // et installation des dépendances
         // =====================================================
         stage('3 - Installation dependances') {
             steps {
                 sh '''
-                    cd backend-central/src
+                    cd backend-central
+
+                    python -m venv .venv
+                    . .venv/bin/activate
+
                     python -m pip install --upgrade pip
-                    pip install -r requirements.txt
+                    pip install -r src/requirements.txt
                     pip install pytest pytest-html pytest-cov pytest-asyncio flake8
                 '''
             }
@@ -80,6 +85,7 @@ pipeline {
             steps {
                 sh '''
                     cd backend-central
+                    . .venv/bin/activate
 
                     flake8 src tests \
                     --max-line-length=120 \
@@ -97,6 +103,7 @@ pipeline {
             steps {
                 sh '''
                     cd backend-central
+                    . .venv/bin/activate
 
                     pytest tests/Unit/ \
                     --html=backend-central-unit-report.html \
@@ -115,6 +122,7 @@ pipeline {
             steps {
                 sh '''
                     cd backend-central
+                    . .venv/bin/activate
 
                     pytest tests/Integration/ \
                     --html=backend-central-integration-report.html \
