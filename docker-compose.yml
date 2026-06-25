@@ -30,12 +30,12 @@ services:
    ports:
      - "1883:1883"
    volumes:
-     - ./backend-pays/src/mosquitto.conf:/mosquitto/config/mosquitto.conf
+     - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   # Backend FastAPI pour le pays "Brésil"
   backend-pays-bresil:
     build:
-      context: ./backend-pays/src
+      context: ./backend-pays
     container_name: futurekawa-backend-bresil
     ports:
       - "8001:8000"
