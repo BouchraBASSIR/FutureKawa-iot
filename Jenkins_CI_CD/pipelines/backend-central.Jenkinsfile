@@ -68,7 +68,9 @@ pipeline {
                 sh '''
                     cd backend-central
 
-                    python -m venv .venv
+                    rm -rf .venv
+
+                    python3.11 -m venv .venv
                     . .venv/bin/activate
 
                     python -m pip install --upgrade pip
