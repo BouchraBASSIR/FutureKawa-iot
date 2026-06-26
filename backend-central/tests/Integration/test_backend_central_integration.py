@@ -6,7 +6,7 @@ import httpx
 # En Docker Compose, cette URL peut etre le nom du service.
 BACKEND_PAYS_URL = os.getenv(
     "BACKEND_PAYS_URL",
-    "http://backend-pays-bresil:8000"
+    "http://futurekawa-backend-bresil:8000"
 )
 
 
