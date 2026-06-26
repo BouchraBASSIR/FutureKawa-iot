@@ -1,0 +1,89 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dashboard-row { margin-top: 16px; }
+
+// Faire que toutes les KPI cards aient la même hauteur
+.kpi-row {
+  .ant-col {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.kpi-card {
+  height: 100%;
+  width: 100%;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+
+  .ant-card-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px !important;
+    height: 100%;
+  }
+}
+
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.kpi-body { display: flex; flex-direction: column; gap: 2px; }
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1;
+}
+
+.kpi-unit { font-size: 14px; font-weight: 400; color: #8c8c8c; margin-left: 2px; }
+.kpi-label { font-size: 13px; color: #595959; font-weight: 500; }
+.kpi-sub { font-size: 11px; color: #adadad; }
+
+.map-card {
+  height: 100%;
+  .ant-card-body { padding: 12px 16px 16px !important; }
+}
+
+.map-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.map-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.alerts-card {
+  height: 100%;
+  .ant-card-body { padding: 0 !important; }
+  .ant-card-head { padding: 0 16px; }
+}
+
+.row-active td { background: #fffbe6 !important; }
+.row-ack { opacity: 0.6; }

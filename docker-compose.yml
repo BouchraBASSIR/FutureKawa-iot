@@ -1,88 +1,235 @@
 services:
 
   # =========================================================================
-  # INFRASTRUCTURE DE BASE (PAYS : BRÉSIL)
+  # BASE DE DONNÉES — CENTRALE (utilisateurs, rôles, accès)
   # =========================================================================
 
-  # Base de données PostgreSQL pour le pays "Brésil"
-  postgres-bresil:
-    image: postgres:15
-    container_name: futurekawa-db-bresil
+  postgres-central:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: futurekawa
-      POSTGRES_PASSWORD: futurekawa123
-      POSTGRES_DB: futurekawa_bresil
-    ports:
-      - "5432:5432"
+      POSTGRES_USER:     ${CENTRAL_DB_USER}
+      POSTGRES_PASSWORD: ${CENTRAL_DB_PASSWORD}
+      POSTGRES_DB:       futurekawa_central
     volumes:
-      - postgres_bresil_data:/var/lib/postgresql/data
+      - postgres-central-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U futurekawa -d futurekawa_bresil"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${CENTRAL_DB_USER}"]
+      interval: 10s
       timeout: 5s
       retries: 5
-
-
-# # Broker MQTT Mosquitto pour le pays "Brésil"
-  mosquitto-bresil:
-   image: eclipse-mosquitto:2
-   container_name: futurekawa-mqtt-bresil
-   ports:
-     - "1883:1883"
-   volumes:
-     - ./backend-pays/src/mosquitto.conf:/mosquitto/config/mosquitto.conf
-
-  # Backend FastAPI pour le pays "Brésil"
-  backend-pays-bresil:
-    build:
-      context: ./backend-pays/src
-    container_name: futurekawa-backend-bresil
-    ports:
-      - "8001:8000"
-    environment:
-      DATABASE_URL: postgresql://futurekawa:futurekawa123@postgres-bresil:5432/futurekawa_bresil
-      MQTT_BROKER: mosquitto-bresil
-      MQTT_PORT: 1883
-    depends_on:
-      postgres-bresil:
-        condition: service_healthy
-      mosquitto-bresil:
-        condition: service_started
-    restart: always
-
-  # Simulateur IoT (ESP32) publiant vers le broker du Brésil
-  simulateur-bresil:
-    build:
-      context: ./simulateur
-    container_name: futurekawa-sim-bresil
-    command: python simulateur_esp32.py --pays bresil --broker mosquitto-bresil --port 1883 --intervalle 10
-    depends_on:
-      - mosquitto-bresil
-    restart: always
+    networks:
+      - futurekawa-network
 
   # =========================================================================
   # BACKEND CENTRAL (SIÈGE)
   # =========================================================================
 
-  # Backend Central (Siège) qui consolide les API pays
   backend-central:
     build:
-      context: ./backend-central/src
-    container_name: futurekawa-backend-central
-    ports:
-      - "8010:8000"  
+      context: ./backend-central
+      dockerfile: Dockerfile
     environment:
-      COUNTRY_BRESIL_URL: http://backend-pays-bresil:8000
+      DATABASE_URL:         postgresql://${CENTRAL_DB_USER}:${CENTRAL_DB_PASSWORD}@postgres-central:5432/futurekawa_central
+      JWT_SECRET:           ${JWT_SECRET}
+      ADMIN_EMAIL:          ${ADMIN_EMAIL}
+      ADMIN_PASSWORD:       ${ADMIN_PASSWORD}
+      COUNTRY_BRESIL_URL:   http://backend-pays-bresil:8000
       COUNTRY_EQUATEUR_URL: http://backend-pays-equateur:8000
       COUNTRY_COLOMBIE_URL: http://backend-pays-colombie:8000
+    ports:
+      - "9000:9000"
     depends_on:
-      - backend-pays-bresil
-    restart: always
+      postgres-central:
+        condition: service_healthy
+      backend-pays-bresil:
+        condition: service_started
+      backend-pays-equateur:
+        condition: service_started
+      backend-pays-colombie:
+        condition: service_started
+    networks:
+      - futurekawa-network
 
   # =========================================================================
-  # FRONTEND_WEB CENTRAL (SIÈGE)
+  # FRONTEND WEB
   # =========================================================================
-  # TODO
+
+  frontend-web:
+    build:
+      context: ./frontend-web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-central
+    networks:
+      - futurekawa-network
+
+  # =========================================================================
+  # STACK PAYS : BRÉSIL
+  # =========================================================================
+
+  mosquitto-bresil:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+    networks:
+      - futurekawa-network
+
+  postgres-bresil:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER:     ${BRESIL_DB_USER}
+      POSTGRES_PASSWORD: ${BRESIL_DB_PASSWORD}
+      POSTGRES_DB:       ${BRESIL_DB_NAME}
+    volumes:
+      - postgres-bresil-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BRESIL_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - futurekawa-network
+
+  backend-pays-bresil:
+      image: josef3215/futurekawa-backend-pays:latest
+      environment:
+        PAYS:         bresil
+        DATABASE_URL: postgresql://${BRESIL_DB_USER}:${BRESIL_DB_PASSWORD}@postgres-bresil:5432/${BRESIL_DB_NAME}
+        MQTT_BROKER:  mosquitto-bresil
+        MQTT_PORT:    1883
+        JWT_SECRET:   ${JWT_SECRET}
+        SMTP_SERVER:  ${SMTP_SERVER}
+        SMTP_PORT:    ${SMTP_PORT}
+        SENDER_EMAIL:    ${SENDER_EMAIL}
+        SENDER_PASSWORD: ${SENDER_PASSWORD}
+      ports:
+        - "8000:8000"
+      depends_on:
+        postgres-bresil:
+          condition: service_healthy
+      networks:
+        - futurekawa-network
+
+  # =========================================================================
+  # STACK PAYS : ÉQUATEUR
+  # =========================================================================
+
+  mosquitto-equateur:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1885:1883"
+    networks:
+      - futurekawa-network
+
+  postgres-equateur:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER:     ${EQUATEUR_DB_USER}
+      POSTGRES_PASSWORD: ${EQUATEUR_DB_PASSWORD}
+      POSTGRES_DB:       ${EQUATEUR_DB_NAME}
+    volumes:
+      - postgres-equateur-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${EQUATEUR_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - futurekawa-network
+
+  backend-pays-equateur:
+    image: josef3215/futurekawa-backend-pays:latest
+    environment:
+      PAYS:         equateur
+      DATABASE_URL: postgresql://${EQUATEUR_DB_USER}:${EQUATEUR_DB_PASSWORD}@postgres-equateur:5432/${EQUATEUR_DB_NAME}
+      MQTT_BROKER:  mosquitto-equateur
+      MQTT_PORT:    1883
+      JWT_SECRET:   ${JWT_SECRET}
+      SMTP_SERVER:  ${SMTP_SERVER}
+      SMTP_PORT:    ${SMTP_PORT}
+      SENDER_EMAIL:    ${SENDER_EMAIL}
+      SENDER_PASSWORD: ${SENDER_PASSWORD}
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres-equateur:
+        condition: service_healthy
+      mosquitto-equateur:
+        condition: service_started
+    networks:
+      - futurekawa-network
+
+  # =========================================================================
+  # STACK PAYS : COLOMBIE
+  # =========================================================================
+
+  mosquitto-colombie:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1886:1883"
+    networks:
+      - futurekawa-network
+
+  postgres-colombie:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER:     ${COLOMBIE_DB_USER}
+      POSTGRES_PASSWORD: ${COLOMBIE_DB_PASSWORD}
+      POSTGRES_DB:       ${COLOMBIE_DB_NAME}
+    volumes:
+      - postgres-colombie-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COLOMBIE_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - futurekawa-network
+
+  backend-pays-colombie:
+    image: josef3215/futurekawa-backend-pays:latest
+    environment:
+      PAYS:         colombie
+      DATABASE_URL: postgresql://${COLOMBIE_DB_USER}:${COLOMBIE_DB_PASSWORD}@postgres-colombie:5432/${COLOMBIE_DB_NAME}
+      MQTT_BROKER:  mosquitto-colombie
+      MQTT_PORT:    1883
+      JWT_SECRET:   ${JWT_SECRET}
+      SMTP_SERVER:  ${SMTP_SERVER}
+      SMTP_PORT:    ${SMTP_PORT}
+      SENDER_EMAIL:    ${SENDER_EMAIL}
+      SENDER_PASSWORD: ${SENDER_PASSWORD}
+    ports:
+      - "8002:8000"
+    depends_on:
+      postgres-colombie:
+        condition: service_healthy
+      mosquitto-colombie:
+        condition: service_started
+    networks:
+      - futurekawa-network
+
+networks:
+  futurekawa-network:
+    driver: bridge
 
 volumes:
-  postgres_bresil_data:
+  postgres-bresil-data:
+  postgres-equateur-data:
+  postgres-colombie-data:
+  postgres-central-data:

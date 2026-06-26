@@ -5,12 +5,3 @@ Lister scénarios concrets :
            2. Test d'Intégration API : Enregistrer un lot via la route POST et vérifier sa présence en
               BDD SQL.
            3. Test de Flux IoT : Le simulateur publie sur MQTT → l'API consomme et stocke en BDD.
-
-
-[[TODO]] 
- * Schéma d'architecture.
-       * La justification du choix de FastAPI (asynchrone, ultra-rapide, auto-génération de la
-         documentation OpenAPI / Swagger).
-       * La justification du choix de MQTT (Mosquitto) pour sa légèreté, essentielle pour les
-         entrepôts à faible connectivité réseau (Brésil, Colombie, Équateur).
- Architecture Technique - FutureKawa
