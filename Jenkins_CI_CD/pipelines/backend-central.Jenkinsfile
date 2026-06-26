@@ -68,13 +68,22 @@ pipeline {
                 sh '''
                     cd backend-central
 
+                    # Suppression de l'ancien environnement virtuel
                     rm -rf .venv
 
-                    python3.11 -m venv .venv
+                    # Création d'un nouvel environnement virtuel
+                    python -m venv .venv
+
+                    # Activation
                     . .venv/bin/activate
 
+                    # Mise à jour de pip
                     python -m pip install --upgrade pip
+
+                    # Installation des dépendances du projet
                     pip install -r src/requirements.txt
+
+                    # Installation des outils CI/CD
                     pip install pytest pytest-html pytest-cov pytest-asyncio flake8
                 '''
             }
