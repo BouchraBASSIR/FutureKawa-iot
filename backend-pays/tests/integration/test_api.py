@@ -1,5 +1,5 @@
 """
-FutureKawa — Tests d'Intégration (API REST)
+FutureKawa - Tests d'Intégration (API REST)
 tests/integration/test_api.py
 """
 

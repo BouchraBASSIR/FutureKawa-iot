@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useContext, useMemo } from "react";
-import { Row, Col, Card, Table, Tag, Typography, Select, Spin, Alert } from "antd";
-// Tag gardé pour les colonnes du tableau des alertes
-import {
-  ThunderboltOutlined, WarningOutlined, DashboardOutlined, ExperimentOutlined,
-} from "@ant-design/icons";
+import { Row, Col, Card, Table, Tag, Typography, Select, Spin, Alert, DatePicker } from "antd";
+import dayjs from "dayjs";
+import { ArrowRightOutlined } from "@ant-design/icons";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -11,7 +9,6 @@ import WorldMap from "../../components/layout/WorldMap/WorldMap";
 import { dashboardService } from "../../services/dashboard.service";
 import { CountryContext } from "../../context/country";
 import { useAuth } from "../../context/AuthContext";
-import ScopeBadge from "../../components/common/ScopeBadge";
 import "./Dashboard.scss";
 
 const { Text } = Typography;
@@ -64,16 +61,15 @@ const alertColumns = [
   },
 ];
 
-// ── Composant KPI Card ───────────────────────────────────────────────────────
-const KPICard = ({ icon, label, value, unit, color, sub }) => (
-  <Card className="kpi-card" variant="borderless">
-    <div className="kpi-icon" style={{ background: `${color}18`, color }}>{icon}</div>
-    <div className="kpi-body">
-      <div className="kpi-value">{value ?? "_"}<span className="kpi-unit">{unit}</span></div>
-      <div className="kpi-label">{label}</div>
-      {sub && <div className="kpi-sub">{sub}</div>}
+// ── Composant KPI Card — Style B bord de statut ──────────────────────────────
+const KPICard = ({ label, value, unit, color, sub }) => (
+  <div className="kpi-card" style={{ borderLeftColor: color }}>
+    <div className="kpi-label">{label}</div>
+    <div className="kpi-value" style={{ color }}>
+      {value ?? "—"}<span className="kpi-unit">{unit}</span>
     </div>
-  </Card>
+    {sub && <div className="kpi-sub">{sub}</div>}
+  </div>
 );
 
 // ── Helpers graphiques ───────────────────────────────────────────────────────
@@ -117,11 +113,12 @@ const COUNTRY_OPTIONS = [
 const Dashboard = () => {
   const { selectedCountry, setSelectedCountry } = useContext(CountryContext);
   const { hasRole, profile } = useAuth();
-  const [loading, setLoading]  = useState(true);
-  const [kpi, setKpi]          = useState(null);
-  const [alerts, setAlerts]    = useState([]);
-  const [chartData, setChart]  = useState([]);
+  const [loading, setLoading]        = useState(true);
+  const [kpi, setKpi]                = useState(null);
+  const [alerts, setAlerts]          = useState([]);
+  const [allMesures, setAllMesures]  = useState([]);
   const [activeCountries, setActiveCountries] = useState([]);
+  const [dateRange, setDateRange]    = useState([dayjs().subtract(30, "day"), dayjs()]);
 
   // Liste des pays accessibles selon le rôle.
   // null = pas de restriction (admin), sinon tableau des pays du JWT.
@@ -130,11 +127,6 @@ const Dashboard = () => {
     const unique = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
     return unique.length ? unique : null;
   }, [hasRole, profile]);
-
-  // Entrepôt assigné (pour l'affichage du ScopeBadge)
-  const scopeAccess = allowedPays?.length === 1
-    ? profile?.accesses?.find(a => a.pays === allowedPays[0])
-    : null;
 
   // Verrouille le pays sélectionné dès qu'on connaît les accès
   useEffect(() => {
@@ -183,11 +175,13 @@ const Dashboard = () => {
         ]);
         setAlerts(alertsData);
 
-        const datasets = mesuresData.map((mesures, i) => {
-          if (!Array.isArray(mesures)) return [];
-          return buildChartData(mesures, targetCountries[i]);
-        });
-        setChart(mergeChartData(datasets));
+        // Stocker les mesures brutes avec leur pays pour filtrer côté client
+        const raw = mesuresData.flatMap((mesures, i) =>
+          Array.isArray(mesures)
+            ? mesures.map(m => ({ ...m, _countryId: targetCountries[i] }))
+            : []
+        );
+        setAllMesures(raw);
       } catch (err) {
         console.error("Erreur dashboard:", err);
       } finally {
@@ -219,6 +213,31 @@ const Dashboard = () => {
     };
   }, [kpi, isFiltered, selectedCountry]);
 
+  const chartData = useMemo(() => {
+    const [from, to] = dateRange ?? [];
+    if (!from || !to) return [];
+
+    const fromMs = from.startOf("day").valueOf();
+    const toMs   = to.endOf("day").valueOf();
+
+    const filtered = allMesures.filter(m => {
+      const t = new Date(m.date_mesure).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+
+    const byCountry = {};
+    filtered.forEach(m => {
+      const cId = m._countryId;
+      if (!byCountry[cId]) byCountry[cId] = [];
+      byCountry[cId].push(m);
+    });
+
+    const datasets = Object.entries(byCountry).map(([cId, mesures]) =>
+      buildChartData(mesures, cId)
+    );
+    return mergeChartData(datasets);
+  }, [allMesures, dateRange]);
+
   if (loading) {
     return <div style={{ textAlign: "center", padding: "50px" }}><Spin /></div>;
   }
@@ -247,58 +266,49 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Sélecteur pays ou badge de périmètre */}
-      <Row style={{ marginBottom: 20 }} align="middle">
-        <Col xs={24} sm={8}>
-          {allowedPays?.length === 1 ? (
-            <ScopeBadge
-              pays={allowedPays[0]}
-              entrepotId={scopeAccess?.entrepot_id}
-            />
-          ) : (
+      {/* Sélecteur pays — masqué pour les utilisateurs mono-pays (données déjà filtrées) */}
+      {allowedPays?.length !== 1 && (
+        <Row style={{ marginBottom: 20 }} align="middle">
+          <Col xs={24} sm={8}>
             <Select
               value={selectedCountry}
               onChange={(value) => setSelectedCountry(value)}
               style={{ width: "100%" }}
               options={selectOptions}
             />
-          )}
-        </Col>
-      </Row>
+          </Col>
+        </Row>
+      )}
 
       <Row gutter={[16, 16]} className="kpi-row">
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <KPICard
-            icon={<ThunderboltOutlined />}
             label="Total lots"
             value={kpiSource?.total_lots ?? 0}
             color="#1677ff"
             sub={`${kpiSource?.conforme_lots ?? 0} conformes · ${kpiSource?.perime_lots ?? 0} périmés`}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <KPICard
-            icon={<WarningOutlined />}
             label="Alertes actives"
             value={kpiSource?.alertes_actives ?? nonLues}
             color="#ff4d4f"
             sub={`${nonLues} non lue${nonLues > 1 ? "s" : ""}`}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <KPICard
-            icon={<DashboardOutlined />}
             label="Température moy."
-            value={kpiSource?.temp_moyenne ?? "_"}
+            value={kpiSource?.temp_moyenne ?? "—"}
             unit="°C"
             color="#fa8c16"
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <KPICard
-            icon={<ExperimentOutlined />}
             label="Humidité moy."
-            value={kpiSource?.humidite_moyenne ?? "_"}
+            value={kpiSource?.humidite_moyenne ?? "—"}
             unit="%"
             color="#52c41a"
           />
@@ -347,13 +357,35 @@ const Dashboard = () => {
       </Row>
 
       {/* Graphiques */}
-      <Row gutter={[16, 16]} className="dashboard-row" style={{ marginTop: 20 }}>
+      <div className="chart-period-header">
+        <span className="chart-period-title">Tendances IoT</span>
+        <DatePicker.RangePicker
+          value={dateRange}
+          onChange={v => setDateRange(v)}
+          size="small"
+          showTime={{ format: "HH:mm" }}
+          disabledDate={d => d && d.isAfter(dayjs())}
+          presets={[
+            { label: "Dernières 6h",      value: [dayjs().subtract(6,  "hour"), dayjs()] },
+            { label: "Dernières 24h",     value: [dayjs().subtract(24, "hour"), dayjs()] },
+            { label: "7 derniers jours",  value: [dayjs().subtract(7,  "day"),  dayjs()] },
+            { label: "30 derniers jours", value: [dayjs().subtract(30, "day"),  dayjs()] },
+            { label: "90 derniers jours", value: [dayjs().subtract(90, "day"),  dayjs()] },
+          ]}
+          separator={<ArrowRightOutlined style={{ color: "#1677ff", fontSize: 12 }} />}
+          allowClear={false}
+          format="DD/MM/YYYY HH:mm"
+        />
+      </div>
+      <Row gutter={[16, 16]} className="dashboard-row" style={{ marginTop: 12 }}>
         <Col xs={24} lg={12}>
-          <Card title="Températures - 30 derniers jours (°C)" variant="borderless">
+          <Card title="Températures (°C)" variant="borderless">
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={Math.max(0, Math.floor(chartData.length / 6) - 1)} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }}
+                  interval={Math.ceil(chartData.length / 5) - 1}
+                  tickFormatter={v => v.slice(0, 5)} />
                 <YAxis tick={{ fontSize: 11 }} unit="°C" />
                 <Tooltip />
                 <Legend iconType="circle" iconSize={8} />
@@ -366,11 +398,13 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="Humidité - 30 derniers jours (%)" variant="borderless">
+          <Card title="Humidité (%)" variant="borderless">
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={Math.max(0, Math.floor(chartData.length / 6) - 1)} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }}
+                  interval={Math.ceil(chartData.length / 5) - 1}
+                  tickFormatter={v => v.slice(0, 5)} />
                 <YAxis tick={{ fontSize: 11 }} unit="%" />
                 <Tooltip />
                 <Legend iconType="circle" iconSize={8} />

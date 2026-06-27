@@ -1,5 +1,5 @@
 """
-Steps pytest-bdd — Feature: Gestion des mesures IoT
+Steps pytest-bdd - Feature: Gestion des mesures IoT
 """
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
@@ -71,7 +71,7 @@ def lister_mesures(client):
 @then(parsers.parse("la réponse a le statut {status:d}"))
 def verifier_statut(response, status):
     assert response.status_code == status, (
-        f"Attendu {status}, reçu {response.status_code} — body: {response.text}"
+        f"Attendu {status}, reçu {response.status_code} - body: {response.text}"
     )
 
 

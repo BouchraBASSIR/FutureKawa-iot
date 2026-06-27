@@ -1,14 +1,83 @@
-.report-stat-card {
-  border-radius: 10px !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+.reports-page {
+  padding: 0;
 }
 
-.export-grid {
+// ── Filtres ────────────────────────────────────────────────────
+
+.reports-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.reports-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+// ── Cards ─────────────────────────────────────────────────────
+
+.report-card {
+  border-radius: 10px !important;
+  border: 1px solid #f0f0f0 !important;
+}
+
+.no-data {
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bfbfbf;
+  font-size: 13px;
+}
+
+// ── Exports ───────────────────────────────────────────────────
+
+.export-section {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.export-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.export-note {
-  margin-top: 16px;
+.export-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+
+.export-btn {
+  justify-content: flex-start;
+  min-width: 210px;
+
+  &--csv {
+    color: #1677ff;
+    border-color: #1677ff55;
+    &:hover { background: #e6f4ff; }
+  }
+
+  &--excel {
+    color: #52c41a;
+    border-color: #52c41a55;
+    &:hover { background: #f6ffed; }
+  }
+
+  &--pdf {
+    color: #ff4d4f;
+    border-color: #ff4d4f55;
+    &:hover { background: #fff2f0; }
+  }
 }

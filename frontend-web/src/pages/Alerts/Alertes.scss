@@ -19,6 +19,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .alertes-title {
@@ -89,6 +90,10 @@
   border-radius: 8px;
   border: 1px solid #f0f0f0;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+  }
 
   .ant-table-thead > tr > th {
     background: #fafafa;

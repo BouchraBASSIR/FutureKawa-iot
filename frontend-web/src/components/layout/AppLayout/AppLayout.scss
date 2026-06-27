@@ -22,6 +22,18 @@ body {
   min-height: calc(100vh - 60px);
   padding: 24px;
   background: #f0f2f5;
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 21, 41, 0.5);
+  z-index: 99;
 }
 
 .leaflet-pane,

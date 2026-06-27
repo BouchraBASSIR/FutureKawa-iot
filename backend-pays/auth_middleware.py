@@ -85,9 +85,10 @@ def get_user_entrepots(current_user: dict) -> list:
 
 def can_access_entrepot(entrepot_id: int, current_user: dict) -> bool:
     """En mode test (AUTH_REQUIRED=false), tout est autorisé.
-    Admin voit tout. Sinon vérifie que l'entrepôt est dans les accès du JWT."""
+    Admin et responsable_pays voient tout. Sinon vérifie que l'entrepôt est dans les accès du JWT."""
     if not AUTH_REQUIRED:
         return True
-    if "admin" in current_user.get("roles", []):
+    roles = current_user.get("roles", [])
+    if "admin" in roles or "responsable_pays" in roles:
         return True
     return entrepot_id in get_user_entrepots(current_user)

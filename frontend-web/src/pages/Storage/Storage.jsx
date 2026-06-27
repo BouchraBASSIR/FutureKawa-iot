@@ -1,315 +1,604 @@
-// Mock gardé en commentaire pour référence
-// import { warehouseData, temperatureHistory, humidityHistory } from "../../services/mockData";
-
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Select, Tag, Table, Tabs, Spin, Statistic } from "antd";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadialBarChart, RadialBar,
+  Row, Col, Card, Select, Tag, Table, Tabs, Spin, Empty, Badge, DatePicker,
+} from "antd";
+import dayjs from "dayjs";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine,
 } from "recharts";
+import { WifiOutlined, CheckCircleOutlined, WarningOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import { dashboardService } from "../../services/dashboard.service";
 import { alertesService } from "../../services/alertes.service";
+import { useAuth } from "../../context/AuthContext";
 import "./Storage.scss";
 
-const COUNTRY_IDS = ["bresil", "equateur", "colombie"];
-const FLAG  = { bresil: "🇧🇷", equateur: "🇪🇨", colombie: "🇨🇴" };
-const NAMES = { bresil: "Brésil", equateur: "Équateur", colombie: "Colombie" };
+const FLAG   = { bresil: "🇧🇷", equateur: "🇪🇨", colombie: "🇨🇴" };
+const NAMES  = { bresil: "Brésil", equateur: "Équateur", colombie: "Colombie" };
+const ALL_COUNTRIES = ["bresil", "equateur", "colombie"];
 
-const STATUT_TAG = { conforme: "success", en_alerte: "warning", perime: "error" };
-const TYPE_TAG   = { temperature: "orange", humidite: "blue", perime: "red" };
+const KPICard = ({ label, value, color, sub }) => (
+  <div className="kpi-card" style={{ borderLeftColor: color }}>
+    <div className="kpi-label">{label}</div>
+    <div className="kpi-value" style={{ color }}>{value ?? "-"}</div>
+    {sub && <div className="kpi-sub">{sub}</div>}
+  </div>
+);
 
-const lotColumns = [
-  { title: "ID Lot",        dataIndex: "id_lot",        key: "id_lot",
-    render: v => <code style={{ fontSize: 11 }}>{v}</code> },
-  { title: "Statut",        dataIndex: "statut",        key: "statut",
-    render: v => <Tag color={STATUT_TAG[v] || "default"}>{v}</Tag> },
-  { title: "Date stockage", dataIndex: "date_stockage", key: "date_stockage",
-    render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-" },
-];
+// ─── SVG Gauge (arc 270°, zones colorées) ────────────────────────────────────
 
-const alerteColumns = [
-  { title: "Type",    dataIndex: "type_alerte", key: "type",
-    width: 120, render: v => <Tag color={TYPE_TAG[v] || "default"}>{v}</Tag> },
-  { title: "Message", dataIndex: "message",     key: "message", ellipsis: true },
-  { title: "Statut",  dataIndex: "statut",      key: "statut",
-    width: 90,  render: v => <Tag color={v === "non_lue" ? "orange" : "default"}>{v}</Tag> },
-  { title: "Date",    dataIndex: "date_alerte", key: "date",
-    width: 130, render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-" },
-];
+const SvgGauge = ({ value, max, label, unit, thresholdWarn, thresholdCrit }) => {
+  const r = 70, cx = 110, cy = 105;
+  const circ   = 2 * Math.PI * r;
+  const arcLen = circ * 0.75; // 270° = 75% du cercle
 
-const GaugeCard = ({ label, value, unit, max, thresholdWarn, thresholdCrit }) => {
-  const pct  = value != null ? Math.min(Math.round((value / max) * 100), 100) : 0;
-  const fill = value == null  ? "#d9d9d9"
-    : value >= thresholdCrit  ? "#ff4d4f"
-    : value >= thresholdWarn  ? "#fa8c16"
-    : "#52c41a";
+  const pctWarn = thresholdWarn / max;
+  const pctCrit = thresholdCrit / max;
+  const pctVal  = value != null ? Math.min(Math.max(value / max, 0), 1) : 0;
+
+  // Longueurs des 3 zones sur la piste de fond
+  const lenGreen  = (pctWarn              * arcLen).toFixed(2);
+  const lenOrange = ((pctCrit - pctWarn)  * arcLen).toFixed(2);
+  const lenRed    = ((1       - pctCrit)  * arcLen).toFixed(2);
+
+  // Décalages : chaque zone commence après la précédente
+  const offGreen  = 0;
+  const offOrange = parseFloat(lenGreen);
+  const offRed    = parseFloat(lenGreen) + parseFloat(lenOrange);
+
+  // Couleur de la valeur courante
+  const color =
+    value == null          ? "#bfbfbf" :
+    value >= thresholdCrit ? "#ff4d4f" :
+    value >= thresholdWarn ? "#fa8c16" :
+    "#52c41a";
+
+  const filled = (pctVal * arcLen).toFixed(2);
+
+  // strokeDasharray pour un segment décalé : segment visible, gap, puis reste
+  const zoneArc = (len, offset) =>
+    `0 ${offset} ${len} ${(circ - offset - parseFloat(len)).toFixed(2)}`;
+
   return (
-    <Card className="gauge-card" variant="borderless">
-      <div className="gauge-title">{label}</div>
-      <RadialBarChart
-        width={140} height={140} innerRadius={45} outerRadius={65}
-        data={[{ value: pct, fill }]} startAngle={220} endAngle={-40}
-        style={{ margin: "0 auto" }}
-      >
-        <RadialBar dataKey="value" cornerRadius={6} background={{ fill: "#f0f0f0" }} />
-      </RadialBarChart>
-      <div className="gauge-value" style={{ color: fill }}>
-        {value != null ? value : "-"}<span className="gauge-unit">{unit}</span>
+    <div className="svg-gauge">
+      <svg viewBox="0 0 220 195" width="100%">
+        {/* Zone verte (0 → seuil alerte) */}
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke="#b7eb8f" strokeWidth={16} strokeLinecap="butt"
+          strokeDasharray={zoneArc(lenGreen, offGreen)}
+          transform={`rotate(135 ${cx} ${cy})`} />
+        {/* Zone orange (seuil alerte → seuil critique) */}
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke="#ffd591" strokeWidth={16} strokeLinecap="butt"
+          strokeDasharray={zoneArc(lenOrange, offOrange)}
+          transform={`rotate(135 ${cx} ${cy})`} />
+        {/* Zone rouge (seuil critique → max) */}
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke="#ffccc7" strokeWidth={16} strokeLinecap="butt"
+          strokeDasharray={zoneArc(lenRed, offRed)}
+          transform={`rotate(135 ${cx} ${cy})`} />
+        {/* Aiguille de valeur (arc plein par-dessus) */}
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke={color} strokeWidth={10} strokeLinecap="round"
+          strokeDasharray={`${filled} ${circ}`}
+          transform={`rotate(135 ${cx} ${cy})`}
+          style={{ transition: "stroke-dasharray .5s ease, stroke .3s" }} />
+        {/* Valeur numérique */}
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={36} fontWeight={800} fill={color}>
+          {value != null ? value : "–"}
+        </text>
+        <text x={cx} y={cy + 30} textAnchor="middle" fontSize={14} fill="#8c8c8c">
+          {unit}
+        </text>
+        {/* Bornes */}
+        <text x={24}  y={186} textAnchor="middle" fontSize={10} fill="#aaa">0</text>
+        <text x={196} y={186} textAnchor="middle" fontSize={10} fill="#aaa">{max}</text>
+      </svg>
+      <div className="gauge-label">{label}</div>
+      <div className="gauge-thresholds">
+        <span className="gauge-th gauge-th--warn">Alerte &gt; {thresholdWarn}{unit}</span>
+        <span className="gauge-th gauge-th--crit">Critique &gt; {thresholdCrit}{unit}</span>
       </div>
-      <div className="gauge-sub">Seuil critique : {thresholdCrit}{unit}</div>
-    </Card>
+    </div>
   );
 };
 
+// ─── Custom chart tooltip ─────────────────────────────────────────────────────
+
+const ChartTooltip = ({ active, payload, label, unit }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      <div className="chart-tooltip-date">{label}</div>
+      {payload.map(p => (
+        <div key={p.dataKey} style={{ color: p.color }}>
+          {p.name} : <b>{p.value}{unit}</b>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
+
 const Storage = () => {
-  const [loading, setLoading]   = useState(true);
-  const [options, setOptions]   = useState([]);
-  const [selected, setSelected] = useState(null);
+  const { getAllowedPays, getEntrepotsForPays } = useAuth();
+
+  const [loading,     setLoading]     = useState(true);
+  const [options,     setOptions]     = useState([]);
+  const [selected,    setSelected]    = useState(null);
+  const [mesures,     setMesures]     = useState([]);
+  const [mesLoading,  setMesLoading]  = useState(false);
+  const [config,      setConfig]      = useState(null);
+  const [dateRange,   setDateRange]   = useState([dayjs().subtract(7, "day"), dayjs()]);
+
+  const allowedPays   = getAllowedPays();
+  const targetCountries = allowedPays ?? ALL_COUNTRIES;
+
+  // ── Load entrepôts metadata ────────────────────────────────
+
+  const loadMesures = (countryId, entrepotId) => {
+    setMesLoading(true);
+    Promise.allSettled([
+      dashboardService.getMesuresParEntrepot(countryId, entrepotId),
+      dashboardService.getConfig(countryId),
+    ]).then(([mesR, cfgR]) => {
+      setMesures(mesR.status === "fulfilled" ? (mesR.value || []) : []);
+      setConfig(cfgR.status  === "fulfilled" ? cfgR.value         : null);
+      setMesLoading(false);
+    });
+  };
 
   useEffect(() => {
-    const load = async () => {
+    const init = async () => {
       setLoading(true);
       try {
-        const countryResults = await Promise.allSettled(
-          COUNTRY_IDS.map(async (countryId) => {
-            const [entR, mesR, lotsR, expsR, alertsR] = await Promise.allSettled([
-              dashboardService.getEntrepots(countryId),
-              dashboardService.getMesures(countryId),
-              dashboardService.getLots(countryId),
-              dashboardService.getExploitations(countryId),
-              alertesService.getAll(countryId),
+        const results = await Promise.allSettled(
+          targetCountries.map(async (cId) => {
+            const [entR, lotsR, capR, alertsR] = await Promise.allSettled([
+              dashboardService.getEntrepots(cId),
+              dashboardService.getLots(cId),
+              dashboardService.getCapteurs(cId),
+              alertesService.getAll(cId),
             ]);
             return {
-              countryId,
-              entrepots:    entR.status   === "fulfilled" ? (entR.value   || []) : [],
-              mesures:      mesR.status   === "fulfilled" ? (mesR.value   || []) : [],
-              lots:         lotsR.status  === "fulfilled" ? (lotsR.value  || []) : [],
-              exploitations:expsR.status  === "fulfilled" ? (expsR.value  || []) : [],
-              alertes:      alertsR.status=== "fulfilled" ? (alertsR.value|| []) : [],
+              cId,
+              entrepots: entR.status    === "fulfilled" ? (entR.value    || []) : [],
+              lots:      lotsR.status   === "fulfilled" ? (lotsR.value   || []) : [],
+              capteurs:  capR.status    === "fulfilled" ? (capR.value    || []) : [],
+              alertes:   alertsR.status === "fulfilled" ? (alertsR.value || []) : [],
             };
           })
         );
 
         const opts = [];
-        countryResults.forEach(r => {
+        results.forEach(r => {
           if (r.status !== "fulfilled") return;
-          const { countryId, entrepots, mesures, lots, exploitations, alertes } = r.value;
+          const { cId, entrepots, lots, capteurs, alertes } = r.value;
+          const allowedEnt = getEntrepotsForPays(cId); // null = all, [] = none
+
           entrepots.forEach(e => {
-            const exploitation = exploitations.find(ex => ex.id_exploitation === e.id_exploitation);
-            const entrepotLots  = lots.filter(l => l.id_entrepot === e.id_entrepot);
+            if (allowedEnt !== null && !allowedEnt.includes(e.id_entrepot)) return;
+            const entLots    = lots.filter(l => l.id_entrepot === e.id_entrepot);
+            const entCaps    = capteurs.filter(c => c.id_entrepot === e.id_entrepot);
+            // Alertes lots filtrées par entrepôt ; alertes mesures filtrées par id_entrepot si dispo
+            const entAlertes = alertes.filter(a =>
+              a.kind === "lot"
+                ? entLots.some(l => l.id_lot === a.id_lot)
+                : a.id_entrepot == null || a.id_entrepot === e.id_entrepot
+            );
             opts.push({
-              label:      `${FLAG[countryId]} ${e.nom} - ${e.localisation}`,
-              value:      `${countryId}-${e.id_entrepot}`,
-              entrepot:   e,
-              exploitation,
-              countryId,
-              mesures,
-              lots:       entrepotLots,
-              alertes,
+              value:     `${cId}-${e.id_entrepot}`,
+              label:     `${FLAG[cId]} ${e.nom} - ${e.localisation}`,
+              entrepot:  e,
+              countryId: cId,
+              lots:      entLots,
+              capteurs:  entCaps,
+              alertes:   entAlertes,
             });
           });
         });
 
         setOptions(opts);
-        if (opts.length) setSelected(opts[0].value);
-      } catch (err) {
-        console.error("Erreur Storage:", err);
+        if (opts.length) {
+          const first = opts[0];
+          setSelected(first.value);
+          loadMesures(first.countryId, first.entrepot.id_entrepot);
+        }
       } finally {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+    init();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (loading) return <div style={{ textAlign: "center", padding: 50 }}><Spin /></div>;
+  const handleSelect = (val) => {
+    setSelected(val);
+    const opt = options.find(o => o.value === val);
+    if (opt) loadMesures(opt.countryId, opt.entrepot.id_entrepot);
+  };
 
-  if (!options.length) {
-    return (
-      <div style={{ padding: 50, color: "#8c8c8c", textAlign: "center" }}>
-        Aucun entrepôt disponible (backends pays hors-ligne).
-      </div>
-    );
-  }
+  // ── Derived data ───────────────────────────────────────────
 
   const cur = options.find(o => o.value === selected);
-  if (!cur) return null;
 
-  const mes = cur.mesures || [];
-  const latest = mes.length
-    ? mes.reduce((a, b) => new Date(a.date_mesure) > new Date(b.date_mesure) ? a : b)
+  const latest = mesures.length
+    ? mesures.reduce((a, b) => new Date(a.date_mesure) > new Date(b.date_mesure) ? a : b)
     : null;
 
-  // KPIs lots
-  const totalLots    = cur.lots.length;
-  const conformes    = cur.lots.filter(l => l.statut === "conforme").length;
-  const enAlerte     = cur.lots.filter(l => l.statut === "en_alerte").length;
-  const alertesNonLues = cur.alertes.filter(a => a.statut === "non_lue").length;
+  const chartData = (() => {
+    const [from, to] = dateRange ?? [];
+    if (!from || !to) return [];
 
-  // Historique regroupé par jour
-  const byDay = {};
-  mes.forEach(m => {
-    const day = new Date(m.date_mesure).toLocaleDateString("fr-FR");
-    if (!byDay[day]) byDay[day] = { date: day, temps: [], hums: [] };
-    byDay[day].temps.push(m.temperature);
-    byDay[day].hums.push(m.humidite);
-  });
-  const chartData = Object.values(byDay).slice(-14).map(d => ({
-    date: d.date,
-    temp: parseFloat(Math.max(...d.temps).toFixed(1)),
-    hum:  parseFloat(Math.max(...d.hums).toFixed(1)),
-  }));
+    const fromMs = from.startOf("day").valueOf();
+    const toMs   = to.endOf("day").valueOf();
+    const diffHours = to.diff(from, "hour");
+
+    const filtered = mesures.filter(m => {
+      const t = new Date(m.date_mesure).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+
+    // Moins de 48h → regrouper par heure
+    if (diffHours < 48) {
+      const byHour = {};
+      filtered.forEach(m => {
+        const d   = new Date(m.date_mesure);
+        const key = `${d.toLocaleDateString("fr-FR")} ${String(d.getHours()).padStart(2, "0")}h`;
+        if (!byHour[key]) byHour[key] = { date: `${String(d.getHours()).padStart(2, "0")}h`, temps: [], hums: [] };
+        byHour[key].temps.push(m.temperature);
+        byHour[key].hums.push(m.humidite);
+      });
+      return Object.values(byHour).map(d => ({
+        date: d.date,
+        temp: parseFloat((d.temps.reduce((a, b) => a + b, 0) / d.temps.length).toFixed(1)),
+        hum:  parseFloat((d.hums.reduce((a, b)  => a + b, 0) / d.hums.length).toFixed(1)),
+      }));
+    }
+
+    // Sinon regrouper par jour
+    const byDay = {};
+    filtered.forEach(m => {
+      const key = new Date(m.date_mesure).toLocaleDateString("fr-FR");
+      if (!byDay[key]) byDay[key] = { date: key, temps: [], hums: [] };
+      byDay[key].temps.push(m.temperature);
+      byDay[key].hums.push(m.humidite);
+    });
+    return Object.values(byDay).map(d => ({
+      date: d.date,
+      temp: parseFloat((d.temps.reduce((a, b) => a + b, 0) / d.temps.length).toFixed(1)),
+      hum:  parseFloat((d.hums.reduce((a, b)  => a + b, 0) / d.hums.length).toFixed(1)),
+    }));
+  })();
+
+  // Seuils tirés uniquement de la config backend
+  const thTemp = config ? {
+    warn: parseFloat((config.temp_ideale + config.tolerance_temp * 0.7).toFixed(1)),
+    crit: parseFloat((config.temp_ideale + config.tolerance_temp).toFixed(1)),
+    max:  Math.ceil(config.temp_ideale + config.tolerance_temp * 2),
+  } : null;
+
+  const thHum = config ? {
+    warn: parseFloat((config.hum_ideale + config.tolerance_hum * 0.7).toFixed(1)),
+    crit: parseFloat((config.hum_ideale + config.tolerance_hum).toFixed(1)),
+    max:  100,
+  } : null;
+
+  // ── KPIs ──────────────────────────────────────────────────
+
+  const totalLots      = cur?.lots.length ?? 0;
+  const conformes      = cur?.lots.filter(l => l.statut === "conforme").length  ?? 0;
+  const enAlerte       = cur?.lots.filter(l => l.statut === "en_alerte").length ?? 0;
+  const alertesNonLues = cur?.alertes.filter(a => a.statut === "non_lue").length ?? 0;
+  const nbCapteurs     = cur?.capteurs.length ?? 0;
+  const capActifs      = cur?.capteurs.filter(c => c.statut === "actif").length ?? 0;
+
+  // ── Table columns ─────────────────────────────────────────
+
+  const lotCols = [
+    {
+      title: "ID Lot", dataIndex: "id_lot", key: "id_lot",
+      render: v => <code style={{ fontSize: 11 }}>{v}</code>,
+    },
+    {
+      title: "Statut", dataIndex: "statut", key: "statut",
+      render: v => (
+        <Tag color={{ conforme: "success", en_alerte: "warning", perime: "error" }[v] || "default"}>
+          {v}
+        </Tag>
+      ),
+    },
+    {
+      title: "Date stockage", dataIndex: "date_stockage", key: "date_stockage",
+      render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-",
+      sorter: (a, b) => new Date(a.date_stockage) - new Date(b.date_stockage),
+    },
+    {
+      title: "Durée", key: "duree",
+      render: (_, r) => {
+        if (!r.date_stockage) return "-";
+        const j = Math.floor((Date.now() - new Date(r.date_stockage)) / 86400000);
+        return <span style={{ color: j > 330 ? "#ff4d4f" : j > 300 ? "#fa8c16" : undefined }}>{j} j</span>;
+      },
+      sorter: (a, b) => new Date(a.date_stockage) - new Date(b.date_stockage),
+    },
+  ];
+
+  const capCols = [
+    {
+      title: "Référence", dataIndex: "reference", key: "ref",
+      render: v => <code style={{ fontSize: 11 }}>{v}</code>,
+    },
+    {
+      title: "Type", dataIndex: "type_capteur", key: "type",
+      render: v => <Tag icon={<WifiOutlined />} color="blue">{v}</Tag>,
+    },
+    {
+      title: "Statut", dataIndex: "statut", key: "statut",
+      render: v => (
+        <Tag
+          color={v === "actif" ? "success" : "default"}
+          icon={v === "actif" ? <CheckCircleOutlined /> : <WarningOutlined />}
+        >
+          {v}
+        </Tag>
+      ),
+    },
+  ];
+
+  const alertCols = [
+    {
+      title: "Type", dataIndex: "type_alerte", key: "type", width: 120,
+      render: v => (
+        <Tag color={{ temperature: "orange", humidite: "blue", perime: "red" }[v] || "default"}>
+          {v}
+        </Tag>
+      ),
+    },
+    { title: "Message", dataIndex: "message", key: "msg", ellipsis: true },
+    {
+      title: "Statut", dataIndex: "statut", key: "statut", width: 110,
+      render: v => <Tag color={v === "non_lue" ? "orange" : "default"}>{v}</Tag>,
+    },
+    {
+      title: "Date", dataIndex: "date_alerte", key: "date", width: 120,
+      render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-",
+      sorter: (a, b) => new Date(b.date_alerte) - new Date(a.date_alerte),
+    },
+  ];
+
+  // ── Render ────────────────────────────────────────────────
+
+  if (loading) return <div className="storage-loading"><Spin size="large" /></div>;
+
+  if (!options.length) return (
+    <div className="storage-empty">
+      <Empty description="Aucun entrepôt disponible (backends pays hors-ligne)" />
+    </div>
+  );
 
   return (
     <div className="storage-page">
-      {/* Sélecteur */}
-      <div className="storage-toolbar">
-        <span style={{ fontWeight: 600, fontSize: 16 }}>Monitoring Entrepôts</span>
+
+      {/* ── Header ── */}
+      <div className="storage-header">
+        <div className="storage-title-block">
+          <h2 className="storage-title">Monitoring Entrepôts</h2>
+          {cur && (
+            <Tag color="blue" style={{ marginLeft: 8, fontSize: 13 }}>
+              {FLAG[cur.countryId]} {NAMES[cur.countryId]}
+            </Tag>
+          )}
+        </div>
         {options.length > 1 && (
           <Select
             value={selected}
-            onChange={setSelected}
-            style={{ width: 320 }}
+            onChange={handleSelect}
+            style={{ minWidth: 300 }}
             options={options.map(o => ({ value: o.value, label: o.label }))}
           />
         )}
       </div>
 
-      {/* Carte identité */}
-      <Card variant="borderless" className="wh-identity" style={{ marginBottom: 16 }}>
-        <Row gutter={[24, 12]} align="middle">
-          <Col>
-            <div style={{ fontSize: 12, color: "#8c8c8c" }}>Entrepôt</div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{cur.entrepot.nom}</div>
-          </Col>
-          <Col>
-            <div style={{ fontSize: 12, color: "#8c8c8c" }}>Localisation</div>
-            <div>{cur.entrepot.localisation}</div>
-          </Col>
-          <Col>
-            <div style={{ fontSize: 12, color: "#8c8c8c" }}>Pays</div>
-            <div>{FLAG[cur.countryId]} {NAMES[cur.countryId]}</div>
-          </Col>
-          {cur.exploitation && (
+      {/* ── Identity ── */}
+      {cur && (
+        <Card className="identity-card" variant="borderless">
+          <Row gutter={[32, 8]} wrap>
             <Col>
-              <div style={{ fontSize: 12, color: "#8c8c8c" }}>Exploitation</div>
-              <div>{cur.exploitation.nom}</div>
+              <div className="id-label">Entrepôt</div>
+              <div className="id-value">{cur.entrepot.nom}</div>
             </Col>
-          )}
-          <Col>
-            <div style={{ fontSize: 12, color: "#8c8c8c" }}>Dernière mesure</div>
-            <div>
-              {latest
-                ? new Date(latest.date_mesure).toLocaleString("fr-FR", {
-                    day: "2-digit", month: "2-digit",
-                    hour: "2-digit", minute: "2-digit",
-                  })
-                : "-"}
-            </div>
-          </Col>
-        </Row>
-      </Card>
+            <Col>
+              <div className="id-label">Localisation</div>
+              <div className="id-value">{cur.entrepot.localisation}</div>
+            </Col>
+            <Col>
+              <div className="id-label">Capteurs IoT</div>
+              <div className="id-value">
+                <Badge count={nbCapteurs - capActifs} size="small" color="orange" offset={[6, 0]}>
+                  <span>{capActifs} / {nbCapteurs} actifs</span>
+                </Badge>
+              </div>
+            </Col>
+            <Col>
+              <div className="id-label">Dernière mesure</div>
+              <div className="id-value">
+                {latest
+                  ? new Date(latest.date_mesure).toLocaleString("fr-FR", {
+                      day: "2-digit", month: "2-digit",
+                      hour: "2-digit", minute: "2-digit",
+                    })
+                  : "-"}
+              </div>
+            </Col>
+          </Row>
+        </Card>
+      )}
 
-      {/* KPIs */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      {/* ── KPIs ── */}
+      <Row gutter={[12, 12]} className="kpi-row">
         <Col xs={12} sm={6}>
-          <Card variant="borderless" className="stat-card">
-            <Statistic title="Lots stockés" value={totalLots} />
-          </Card>
+          <KPICard label="Lots stockés"     value={totalLots}      color="#1677ff" />
         </Col>
         <Col xs={12} sm={6}>
-          <Card variant="borderless" className="stat-card">
-            <Statistic title="Lots conformes" value={conformes}
-              valueStyle={{ color: "#52c41a" }} />
-          </Card>
+          <KPICard label="Conformes"        value={conformes}      color="#52c41a" />
         </Col>
         <Col xs={12} sm={6}>
-          <Card variant="borderless" className="stat-card">
-            <Statistic title="Lots en alerte" value={enAlerte}
-              valueStyle={{ color: enAlerte > 0 ? "#fa8c16" : "#52c41a" }} />
-          </Card>
+          <KPICard label="En alerte"        value={enAlerte}       color={enAlerte       > 0 ? "#fa8c16" : "#52c41a"} />
         </Col>
         <Col xs={12} sm={6}>
-          <Card variant="borderless" className="stat-card">
-            <Statistic title="Alertes non lues" value={alertesNonLues}
-              valueStyle={{ color: alertesNonLues > 0 ? "#ff4d4f" : "#52c41a" }} />
-          </Card>
+          <KPICard label="Alertes non lues" value={alertesNonLues} color={alertesNonLues > 0 ? "#ff4d4f" : "#52c41a"} />
         </Col>
       </Row>
 
-      {/* Onglets Conditions / Lots / Alertes */}
-      <Card variant="borderless">
+      {/* ── Tabs ── */}
+      <Card variant="borderless" className="storage-tabs-card">
         <Tabs
           items={[
             {
               key: "conditions",
-              label: "Conditions",
-              children: (
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: 12 }}>Mesures actuelles</div>
-                  <Row gutter={[16, 16]}>
-                    <Col xs={12} sm={6}>
-                      <GaugeCard label="Température" value={latest?.temperature ?? null} unit="°C"
-                        max={50} thresholdWarn={28} thresholdCrit={32} />
-                    </Col>
-                    <Col xs={12} sm={6}>
-                      <GaugeCard label="Humidité" value={latest?.humidite ?? null} unit="%"
-                        max={100} thresholdWarn={60} thresholdCrit={70} />
-                    </Col>
-                  </Row>
-
-                  {chartData.length > 0 ? (
-                    <>
-                      <div style={{ fontWeight: 600, margin: "24px 0 12px" }}>
-                        Pic journalier - 14 derniers jours
-                      </div>
-                      <Row gutter={[16, 16]}>
-                        <Col xs={24} lg={12}>
-                          <Card title="Températures (°C)" variant="borderless">
-                            <ResponsiveContainer width="100%" height={200}>
-                              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 10 }} unit="°C" />
-                                <Tooltip />
-                                <Line dataKey="temp" stroke="#fa8c16" strokeWidth={2} dot={false} name="T°" />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </Card>
+              label: "Conditions IoT",
+              children: mesLoading
+                ? <div className="tab-loading"><Spin /></div>
+                : (
+                  <>
+                    {/* Gauges */}
+                    {!config ? (
+                      <Empty
+                        description="Configuration entrepôt introuvable - seuils non disponibles"
+                        style={{ margin: "24px 0" }}
+                      />
+                    ) : (
+                      <Row gutter={[16, 16]} className="gauges-row">
+                        <Col xs={24} sm={12} md={10} lg={8} xl={6}>
+                          <SvgGauge
+                            label="Température"
+                            value={latest?.temperature != null
+                              ? parseFloat(latest.temperature.toFixed(1)) : null}
+                            unit="°C" max={thTemp.max}
+                            thresholdWarn={thTemp.warn} thresholdCrit={thTemp.crit}
+                          />
                         </Col>
-                        <Col xs={24} lg={12}>
-                          <Card title="Humidité (%)" variant="borderless">
-                            <ResponsiveContainer width="100%" height={200}>
-                              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 10 }} unit="%" />
-                                <Tooltip />
-                                <Line dataKey="hum" stroke="#1677ff" strokeWidth={2} dot={false} name="H%" />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </Card>
+                        <Col xs={24} sm={12} md={10} lg={8} xl={6}>
+                          <SvgGauge
+                            label="Humidité relative"
+                            value={latest?.humidite != null
+                              ? parseFloat(latest.humidite.toFixed(1)) : null}
+                            unit="%" max={thHum.max}
+                            thresholdWarn={thHum.warn} thresholdCrit={thHum.crit}
+                          />
                         </Col>
                       </Row>
-                    </>
-                  ) : (
-                    <div style={{ padding: "16px 0", color: "#8c8c8c" }}>
-                      Aucun historique de mesures disponible.
-                    </div>
-                  )}
-                </div>
-              ),
+                    )}
+
+                    {/* Charts */}
+                    {chartData.length > 0 ? (
+                      <>
+                        <div className="chart-section-header">
+                          <div className="chart-section-title">Tendances</div>
+                          <DatePicker.RangePicker
+                            value={dateRange}
+                            onChange={v => setDateRange(v)}
+                            size="small"
+                            showTime={{ format: "HH:mm" }}
+                            disabledDate={d => d && d.isAfter(dayjs())}
+                            presets={[
+                              { label: "Dernières 6h",      value: [dayjs().subtract(6,  "hour"), dayjs()] },
+                              { label: "Dernières 24h",     value: [dayjs().subtract(24, "hour"), dayjs()] },
+                              { label: "7 derniers jours",  value: [dayjs().subtract(7,  "day"),  dayjs()] },
+                              { label: "14 derniers jours", value: [dayjs().subtract(14, "day"),  dayjs()] },
+                              { label: "30 derniers jours", value: [dayjs().subtract(30, "day"),  dayjs()] },
+                            ]}
+                            separator={<ArrowRightOutlined style={{ color: "#1677ff", fontSize: 12 }} />}
+                            allowClear={false}
+                            format="DD/MM/YYYY HH:mm"
+                          />
+                        </div>
+                        <Row gutter={[16, 16]}>
+                          <Col xs={24} lg={12}>
+                            <Card title="Température (°C)" variant="borderless" className="chart-card">
+                              <ResponsiveContainer width="100%" height={220}>
+                                <AreaChart data={chartData}
+                                  margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                                  <defs>
+                                    <linearGradient id="gTemp" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%"  stopColor="#fa8c16" stopOpacity={0.3} />
+                                      <stop offset="95%" stopColor="#fa8c16" stopOpacity={0} />
+                                    </linearGradient>
+                                  </defs>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                                  <YAxis tick={{ fontSize: 10 }} unit="°C" domain={["auto", "auto"]} />
+                                  <Tooltip content={<ChartTooltip unit="°C" />} />
+                                  <ReferenceLine y={thTemp.crit} stroke="#ff4d4f" strokeDasharray="4 2"
+                                    label={{ value: "Critique", position: "insideTopRight",
+                                      fill: "#ff4d4f", fontSize: 10 }} />
+                                  <ReferenceLine y={thTemp.warn} stroke="#fa8c16" strokeDasharray="4 2"
+                                    label={{ value: "Alerte", position: "insideTopRight",
+                                      fill: "#fa8c16", fontSize: 10 }} />
+                                  <Area dataKey="temp" name="Température" stroke="#fa8c16"
+                                    fill="url(#gTemp)" strokeWidth={2} dot={false} />
+                                </AreaChart>
+                              </ResponsiveContainer>
+                            </Card>
+                          </Col>
+                          <Col xs={24} lg={12}>
+                            <Card title="Humidité (%)" variant="borderless" className="chart-card">
+                              <ResponsiveContainer width="100%" height={220}>
+                                <AreaChart data={chartData}
+                                  margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                                  <defs>
+                                    <linearGradient id="gHum" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%"  stopColor="#1677ff" stopOpacity={0.2} />
+                                      <stop offset="95%" stopColor="#1677ff" stopOpacity={0} />
+                                    </linearGradient>
+                                  </defs>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                                  <YAxis tick={{ fontSize: 10 }} unit="%" domain={["auto", "auto"]} />
+                                  <Tooltip content={<ChartTooltip unit="%" />} />
+                                  <ReferenceLine y={thHum.crit} stroke="#ff4d4f" strokeDasharray="4 2"
+                                    label={{ value: "Critique", position: "insideTopRight",
+                                      fill: "#ff4d4f", fontSize: 10 }} />
+                                  <ReferenceLine y={thHum.warn} stroke="#fa8c16" strokeDasharray="4 2"
+                                    label={{ value: "Alerte", position: "insideTopRight",
+                                      fill: "#fa8c16", fontSize: 10 }} />
+                                  <Area dataKey="hum" name="Humidité" stroke="#1677ff"
+                                    fill="url(#gHum)" strokeWidth={2} dot={false} />
+                                </AreaChart>
+                              </ResponsiveContainer>
+                            </Card>
+                          </Col>
+                        </Row>
+                      </>
+                    ) : (
+                      <Empty description="Aucun historique de mesures pour cet entrepôt"
+                        style={{ marginTop: 32 }} />
+                    )}
+                  </>
+                ),
             },
             {
               key: "lots",
               label: `Lots stockés (${totalLots})`,
               children: (
                 <Table
-                  dataSource={cur.lots}
-                  columns={lotColumns}
-                  rowKey="id_lot"
+                  dataSource={cur?.lots} columns={lotCols} rowKey="id_lot"
                   size="small"
                   pagination={{ pageSize: 10, hideOnSinglePage: true }}
                   locale={{ emptyText: "Aucun lot dans cet entrepôt" }}
+                />
+              ),
+            },
+            {
+              key: "capteurs",
+              label: `Capteurs IoT (${nbCapteurs})`,
+              children: (
+                <Table
+                  dataSource={cur?.capteurs} columns={capCols} rowKey="id_capteur"
+                  size="small"
+                  pagination={{ hideOnSinglePage: true }}
+                  locale={{ emptyText: "Aucun capteur enregistré pour cet entrepôt" }}
                 />
               ),
             },
@@ -327,9 +616,7 @@ const Storage = () => {
               ),
               children: (
                 <Table
-                  dataSource={cur.alertes}
-                  columns={alerteColumns}
-                  rowKey="id"
+                  dataSource={cur?.alertes} columns={alertCols} rowKey="id"
                   size="small"
                   pagination={{ pageSize: 10, hideOnSinglePage: true }}
                   locale={{ emptyText: "Aucune alerte" }}
