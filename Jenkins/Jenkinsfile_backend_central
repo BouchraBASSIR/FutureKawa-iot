@@ -37,7 +37,7 @@ pipeline {
         DOCKERHUB_REPO = "z24ch/futurekawa-backend-central"
 
         // Clé du projet SonarQube
-        SONAR_PROJECT_KEY = "futurekawa-backend-central"
+        SONAR_PROJECT_KEY = "FutureKawa-Backend-Central"
     }
 
     stages {
