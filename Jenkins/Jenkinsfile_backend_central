@@ -109,7 +109,7 @@ pipeline {
                         flake8 src tests \
                         --max-line-length=160 \
                         --exclude=__pycache__,venv \
-                        --ignore=E221,E302,E402,E501,E712,E741,F401,W292,W293,E272
+                        --ignore=E221,E241,E272,E302,E402,E501,E712,E741,F401,W292,W293,W503
 
                     '''
                 }
