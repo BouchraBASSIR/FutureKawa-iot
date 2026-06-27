@@ -2,24 +2,10 @@
   "env": {
     "test": {
       "presets": [
-        [
-          "@babel/preset-env",
-          {
-            "targets": [
-              "last 2 chrome versions",
-              "last 2 firefox versions",
-              "edge 17",
-              "ie 11"
-            ]
-          }
-        ],
-        "@babel/preset-react"
+        ["@babel/preset-env", { "targets": { "node": "current" } }],
+        ["@babel/preset-react", { "runtime": "automatic" }]
       ],
-      "plugins": [
-        "@babel/plugin-syntax-dynamic-import",
-        "@babel/plugin-proposal-class-properties",
-        "@babel/plugin-proposal-optional-chaining"
-      ]
+      "plugins": ["@babel/plugin-transform-modules-commonjs"]
     },
     "development": {
       "presets": [

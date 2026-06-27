@@ -3,8 +3,9 @@
 .venv
 /venv
 /backend-pays/venv
-/backend-central/src/__pycache__
-/backend-pays/src/__pycache__
+**/__pycache__
+**/*.pyc
+**/*.pyo
 
 # Variables d'environnement — ne jamais commiter
 .env
