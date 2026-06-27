@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
    */
   const getEntrepotsForPays = useCallback(
     (pays) => {
-      if (hasRole("admin")) return null; // null = accès total
+      if (hasRole("admin", "responsable_pays")) return null; // null = accès total
       const access = profile?.accesses?.find((a) => a.pays === pays);
       return access?.entrepots ?? [];
     },
@@ -42,12 +42,23 @@ export const AuthProvider = ({ children }) => {
   );
 
   /**
-   * Retourne le pays de l'utilisateur (premier accès défini).
-   * null pour les admins (accès multi-pays).
+   * Retourne l'ensemble des pays autorisés pour l'utilisateur.
+   * null pour les admins (pas de restriction).
+   */
+  const getAllowedPays = useCallback(() => {
+    if (hasRole("admin")) return null;
+    const pays = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
+    return pays.length ? pays : null;
+  }, [profile, hasRole]);
+
+  /**
+   * Retourne le pays unique si l'utilisateur n'en a qu'un seul, null sinon.
+   * null = admin OU responsable multi-pays (le sélecteur pays doit apparaître).
    */
   const getUserPays = useCallback(() => {
     if (hasRole("admin")) return null;
-    return profile?.accesses?.[0]?.pays ?? null;
+    const pays = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
+    return pays.length === 1 ? pays[0] : null;
   }, [profile, hasRole]);
 
   const isAuthenticated = !!profile && authService.isAuthenticated();
@@ -62,6 +73,7 @@ export const AuthProvider = ({ children }) => {
         hasRole,
         getEntrepotsForPays,
         getUserPays,
+        getAllowedPays,
       }}
     >
       {children}

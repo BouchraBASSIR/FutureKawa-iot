@@ -1,42 +1,210 @@
-.storage-toolbar {
+.storage-page {
+  padding: 0;
+}
+
+.storage-loading,
+.storage-empty {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  min-height: 300px;
+}
+
+// ── Header ────────────────────────────────────────────────────
+
+.storage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
-.wh-summary .ant-card-body {
-  padding: 16px 20px !important;
+.storage-title-block {
+  display: flex;
+  align-items: center;
 }
 
-.gauge-card {
-  text-align: center;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
-}
-
-.gauge-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #595959;
-  margin-bottom: 4px;
-}
-
-.gauge-value {
-  font-size: 24px;
+.storage-title {
+  margin: 0;
+  font-size: 18px;
   font-weight: 700;
-  margin-top: -8px;
+  color: #1a1a2e;
 }
 
-.gauge-unit {
+// ── Identity card ─────────────────────────────────────────────
+
+.identity-card {
+  margin-bottom: 16px;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f7ff 100%) !important;
+  border: 1px solid #e8e8e8 !important;
+
+  .id-label {
+    font-size: 11px;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .id-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+}
+
+.kpi-row {
+  margin-bottom: 16px;
+
+  .ant-col {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.kpi-card {
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(5, 5, 5, 0.06);
+  border-left: 4px solid;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow 0.15s;
+  cursor: default;
+
+  &:hover { box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); }
+
+  @media (max-width: 480px) { padding: 14px; }
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #9ca3af;
+}
+
+.kpi-value {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+
+  @media (max-width: 480px) { font-size: 26px; }
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+// ── Tabs card ─────────────────────────────────────────────────
+
+.storage-tabs-card {
+  border-radius: 10px !important;
+}
+
+.tab-loading {
+  padding: 40px;
+  text-align: center;
+}
+
+// ── Gauges ────────────────────────────────────────────────────
+
+.gauges-row {
+  margin-bottom: 8px;
+}
+
+.svg-gauge {
+  max-width: 200px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 8px;
+
+  svg {
+    overflow: visible;
+  }
+}
+
+.gauge-label {
   font-size: 13px;
+  font-weight: 600;
+  color: #434343;
+  margin-top: 4px;
+}
+
+.gauge-thresholds {
+  margin-top: 4px;
+  font-size: 11px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.gauge-th {
+  &--warn { color: #fa8c16; }
+  &--crit { color: #ff4d4f; }
+}
+
+// ── Charts ────────────────────────────────────────────────────
+
+.chart-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 12px;
+}
+
+.chart-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #595959;
+}
+
+.config-note {
   font-weight: 400;
   color: #8c8c8c;
-  margin-left: 2px;
+  font-size: 12px;
+  margin-left: 4px;
 }
 
-.gauge-sub {
-  font-size: 11px;
-  color: #adadad;
-  margin-top: 2px;
+.chart-card {
+  border-radius: 8px !important;
+  border: 1px solid #f0f0f0 !important;
+
+  .ant-card-head {
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0 16px;
+  }
+
+  .ant-card-body {
+    padding: 12px 16px 16px !important;
+  }
+}
+
+.chart-tooltip {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  &-date {
+    font-weight: 600;
+    color: #434343;
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
 }

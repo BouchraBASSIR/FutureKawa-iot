@@ -1,5 +1,5 @@
 """
-FutureKawa — Tests Unitaires (modèles SQLAlchemy)
+FutureKawa - Tests Unitaires (modèles SQLAlchemy)
 tests/unit/test_models_and_logic.py
 """
 

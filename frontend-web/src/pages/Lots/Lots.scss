@@ -1,10 +1,76 @@
-.lots-toolbar {
+.lots-page {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.lot-row--expiré td { background: #fff1f0 !important; }
+// ── En-tête ──────────────────────────────────────────────────────────────────
+.lots-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lots-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lots-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.lots-count {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.lots-btn-text {
+  @media (max-width: 576px) { display: none; }
+}
+
+// ── Barre de filtres ─────────────────────────────────────────────────────────
+.lots-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid rgba(5, 5, 5, 0.06);
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.lots-search {
+  flex: 1;
+  min-width: 200px;
+}
+
+.lots-filter-select {
+  width: 160px;
+}
+
+.lots-loading {
+  text-align: center;
+  padding: 50px;
+}
+
+// ── Couleurs de lignes ────────────────────────────────────────────────────────
+.lot-row--expiré td       { background: #fff1f0 !important; }
 .lot-row--avertissement td { background: #fffbe6 !important; }
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 576px) {
+  .lots-filter-select {
+    width: 100%;
+    flex: 1;
+  }
+}

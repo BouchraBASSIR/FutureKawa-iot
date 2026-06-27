@@ -125,6 +125,7 @@ class MesureCreate(BaseModel):
     temperature : float
     humidite    : float
     id_capteur  : int
+    date_mesure : Optional[datetime] = None  # si absent, utcnow()
 
 
 # -- Lot --
@@ -725,7 +726,7 @@ def creer_mesure(data: MesureCreate, db: Session = Depends(get_db)):
     nouvelle_mesure = Mesure(
         temperature = data.temperature,
         humidite    = data.humidite,
-        date_mesure = datetime.utcnow(),
+        date_mesure = data.date_mesure or datetime.utcnow(),
         id_capteur  = data.id_capteur
     )
     db.add(nouvelle_mesure)
@@ -773,10 +774,16 @@ def creer_lot(
     if current_user:
         if not can_access_entrepot(lot.id_entrepot, current_user):
             raise HTTPException(status_code=403, detail="Acces non autorise a cet entrepot")
-        try:
-            id_utilisateur = int(current_user["sub"])
-        except (KeyError, TypeError, ValueError):
-            raise HTTPException(status_code=401, detail="Token invalide : sub utilisateur manquant")
+        # Le sub JWT est l'ID de la base centrale, pas l'ID local.
+        # On résout l'utilisateur local par email.
+        email = current_user.get("email")
+        local_user = db.query(Utilisateur).filter(Utilisateur.email == email).first() if email else None
+        if local_user:
+            id_utilisateur = local_user.id_utilisateur
+        elif lot.id_utilisateur is not None:
+            id_utilisateur = lot.id_utilisateur
+        else:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable dans ce backend pays")
     else:
         if lot.id_utilisateur is None:
             raise HTTPException(status_code=401, detail="Token requis")
@@ -1017,9 +1024,27 @@ def supprimer_toutes_alertes_lots(db: Session = Depends(get_db)):
 # ── Alertes combinées (lecture) ──────────────────────
 @app.get("/alertes")
 def get_toutes_alertes(db: Session = Depends(get_db)):
-    mesures = db.query(AlerteMesure).order_by(AlerteMesure.date_alerte.desc()).all()
-    lots    = db.query(AlerteLot).order_by(AlerteLot.date_alerte.desc()).all()
-    return {"alertes_mesures": mesures, "alertes_lots": lots}
+    mesures_raw = db.query(AlerteMesure).order_by(AlerteMesure.date_alerte.desc()).all()
+    lots        = db.query(AlerteLot).order_by(AlerteLot.date_alerte.desc()).all()
+
+    # Enrichit chaque alerte mesure avec id_entrepot (via mesure → capteur)
+    alertes_mesures = []
+    for a in mesures_raw:
+        item = {
+            "id_alerte_mesure": a.id_alerte_mesure,
+            "type_alerte":      a.type_alerte,
+            "message":          a.message,
+            "seuil_min":        a.seuil_min,
+            "seuil_max":        a.seuil_max,
+            "id_mesure":        a.id_mesure,
+            "date_alerte":      a.date_alerte,
+            "statut":           a.statut,
+        }
+        if a.mesure and a.mesure.capteur:
+            item["id_entrepot"] = a.mesure.capteur.id_entrepot
+        alertes_mesures.append(item)
+
+    return {"alertes_mesures": alertes_mesures, "alertes_lots": lots}
 
 
 @app.get("/alertes/count")

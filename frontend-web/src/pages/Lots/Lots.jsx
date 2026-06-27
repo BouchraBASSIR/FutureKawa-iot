@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Table, Input, Select, Tag, Button, Space, Typography, Spin, Modal, Form, message } from "antd";
-import { SearchOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
+import { Table, Input, Select, Tag, Button, Typography, Spin, Modal, Form, message } from "antd";
+import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { lotsService } from "../../services/lots.service";
 import { useAuth } from "../../context/AuthContext";
-import ScopeBadge from "../../components/common/ScopeBadge";
 import api from "../../services/api";
 import "./Lots.scss";
 
@@ -34,7 +33,12 @@ const COUNTRY_OPTIONS = [
 
 const Lots = () => {
   const navigate = useNavigate();
-  const { profile, hasRole, getUserPays } = useAuth();
+  const { profile, hasRole, getUserPays, getAllowedPays } = useAuth();
+
+  // null = admin (pas de restriction), array = pays autorisés
+  const allowedPays = getAllowedPays();
+  // null si admin OU responsable multi-pays → le sélecteur pays s'affiche
+  const paysFixe = getUserPays();
 
   const [lots, setLots]         = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -52,13 +56,15 @@ const Lots = () => {
   // Qui peut créer un lot ?
   const peutCreerLot = hasRole("operateur", "responsable_pays");
 
-  // Pays fixé pour responsable_pays et opérateur (ils ne choisissent pas)
-  const paysFixe = getUserPays(); // null si admin
+  // Options filtrées selon les accès (admin = tout, restreint = ses pays)
+  const filteredCountryOptions = allowedPays
+    ? COUNTRY_FILTER_OPTIONS.filter(o => allowedPays.includes(o.value))
+    : COUNTRY_FILTER_OPTIONS;
 
-  // Entrepôt assigné pour le ScopeBadge
-  const scopeAccess = paysFixe
-    ? profile?.accesses?.find(a => a.pays === paysFixe)
-    : null;
+  const filteredModalOptions = allowedPays
+    ? COUNTRY_OPTIONS.filter(o => allowedPays.includes(o.value))
+    : COUNTRY_OPTIONS;
+
 
   const chargerEntrepots = async (pays) => {
     if (!pays) return;
@@ -219,56 +225,57 @@ const Lots = () => {
     },
   ];
 
+  const countLabel = loading
+    ? null
+    : filtered.length === lots.length
+      ? `${lots.length} lot${lots.length !== 1 ? "s" : ""} au total`
+      : `${filtered.length} résultat${filtered.length !== 1 ? "s" : ""} sur ${lots.length}`;
+
   return (
     <div className="lots-page">
-      <div className="lots-toolbar">
-        <Input.Search
-          placeholder="Rechercher par ID lot…"
-          allowClear
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 280 }}
-          prefix={<SearchOutlined />}
-        />
-        {paysFixe && (
-          <ScopeBadge pays={paysFixe} entrepotId={scopeAccess?.entrepot_id} />
-        )}
-        <Space>
-          {/* Filtre pays inutile si l'utilisateur est verrouillé sur un seul pays */}
-          {!paysFixe && (
-            <Select
-              placeholder="Filtrer par pays"
-              allowClear
-              style={{ width: 160 }}
-              onChange={setCountry}
-              options={COUNTRY_FILTER_OPTIONS}
-            />
-          )}
-          <Select
-            placeholder="Filtrer par statut"
-            allowClear
-            style={{ width: 170 }}
-            onChange={setStatus}
-            options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
-          />
-        </Space>
-        <Text type="secondary" style={{ fontSize: 13 }}>
-          {filtered.length} lot{filtered.length > 1 ? "s" : ""} - trié FIFO
-        </Text>
 
-        {/* Bouton visible uniquement pour opérateur et responsable_pays */}
+      {/* ── En-tête ── */}
+      <div className="lots-header">
+        <div className="lots-header-left">
+          <h2 className="lots-title">Lots de café</h2>
+          {countLabel && <span className="lots-count">{countLabel}</span>}
+        </div>
         {peutCreerLot && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={ouvrirModal}
-          >
-            Nouveau lot
+          <Button type="primary" icon={<PlusOutlined />} onClick={ouvrirModal}>
+            <span className="lots-btn-text">Nouveau lot</span>
           </Button>
         )}
       </div>
 
+      {/* ── Barre de filtres ── */}
+      <div className="lots-filters">
+        <Input.Search
+          placeholder="Rechercher par ID lot…"
+          allowClear
+          onChange={(e) => setSearch(e.target.value)}
+          className="lots-search"
+        />
+        {!paysFixe && (
+          <Select
+            placeholder="Tous les pays"
+            allowClear
+            className="lots-filter-select"
+            onChange={setCountry}
+            options={filteredCountryOptions}
+          />
+        )}
+        <Select
+          placeholder="Tous les statuts"
+          allowClear
+          className="lots-filter-select"
+          onChange={setStatus}
+          options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
+        />
+      </div>
+
+      {/* ── Tableau ── */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: 50 }}><Spin /></div>
+        <div className="lots-loading"><Spin /></div>
       ) : (
         <Table
           dataSource={filtered}
@@ -309,7 +316,7 @@ const Lots = () => {
             <Select
               placeholder="Choisir un pays"
               disabled={!!paysFixe}
-              options={COUNTRY_OPTIONS}
+              options={filteredModalOptions}
               onChange={async (val) => {
                 setSelectedPays(val);
                 form.setFieldValue("id_entrepot", undefined);

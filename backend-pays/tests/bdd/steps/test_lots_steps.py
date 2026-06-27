@@ -1,5 +1,5 @@
 """
-Steps pytest-bdd — Feature: Gestion des lots de café
+Steps pytest-bdd Feature: Gestion des lots de café
 """
 import os
 import pytest
@@ -47,7 +47,7 @@ def lot_existant(client, lot_id, setup_entrepot, setup_utilisateur):
         "id_utilisateur": utilisateur_id
     }, headers=_auth_header(utilisateur_id))
     assert resp.status_code == 201, (
-        f"Précondition échouée — impossible de créer {lot_id}: {resp.text}"
+        f"Précondition échouée - impossible de créer {lot_id}: {resp.text}"
     )
 
 
@@ -85,7 +85,7 @@ def lister_lots(client):
 @then(parsers.parse("la réponse a le statut {status:d}"))
 def verifier_statut(response, status):
     assert response.status_code == status, (
-        f"Attendu {status}, reçu {response.status_code} — body: {response.text}"
+        f"Attendu {status}, reçu {response.status_code} - body: {response.text}"
     )
 
 

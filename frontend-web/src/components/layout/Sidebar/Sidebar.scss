@@ -87,3 +87,15 @@
   width: 18px;
   height: 18px;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-250px);
+    transition: transform 0.25s ease;
+    z-index: 100;
+
+    &.sidebar--open {
+      transform: translateX(0);
+    }
+  }
+}

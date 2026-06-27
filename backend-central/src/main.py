@@ -96,6 +96,29 @@ def _require_country(country_id: str) -> None:
         )
 
 
+def _get_allowed_countries(current_user: dict) -> list:
+    """Pays accessibles selon le rôle et les accès JWT."""
+    if "admin" in current_user.get("roles", []):
+        return list(COUNTRIES.keys())
+    seen, result = set(), []
+    for a in current_user.get("accesses", []):
+        pays = a.get("pays")
+        if pays and pays in COUNTRIES and pays not in seen:
+            seen.add(pays)
+            result.append(pays)
+    return result
+
+
+def _require_access(country_id: str, current_user: dict) -> None:
+    """Vérifie que le pays est configuré ET que l'utilisateur y a accès."""
+    _require_country(country_id)
+    if "admin" in current_user.get("roles", []):
+        return
+    allowed = {a["pays"] for a in current_user.get("accesses", [])}
+    if country_id not in allowed:
+        raise HTTPException(status_code=403, detail=f"Accès au pays '{country_id}' refusé.")
+
+
 # ── Santé ────────────────────────────────────────────────────────────────────
 
 @app.get("/", tags=["Santé"])
@@ -140,17 +163,19 @@ async def get_consolidated_stocks(
         None,
         description="Filtrer par id pays (ex: bresil, equateur, colombie)",
     ),
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """
-    Consolide les lots de tous les pays actifs, triés en ordre FIFO
-    (date_stockage croissante - les plus anciens en premier pour expédition prioritaire).
-    Accepte un paramètre `country` pour filtrer sur un seul pays.
+    Consolide les lots des pays accessibles, triés en ordre FIFO.
+    Filtre automatiquement selon les accès JWT de l'utilisateur.
     """
+    allowed = _get_allowed_countries(current_user)
     if country:
-        _require_country(country)
-
-    targets = [country] if country else list(COUNTRIES.keys())
+        if country not in allowed:
+            raise HTTPException(status_code=403, detail=f"Accès au pays '{country}' refusé.")
+        targets = [country]
+    else:
+        targets = allowed
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
@@ -172,11 +197,9 @@ async def get_consolidated_stocks(
 
 
 @app.get("/api/central/stocks/{country_id}/{lot_id}", tags=["Stocks"])
-async def get_lot(country_id: str, lot_id: str, _: dict = Depends(get_current_user)):
-    """
-    Récupère le détail d'un lot précis depuis le backend du pays concerné.
-    """
-    _require_country(country_id)
+async def get_lot(country_id: str, lot_id: str, current_user: dict = Depends(get_current_user)):
+    """Récupère le détail d'un lot précis depuis le backend du pays concerné."""
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         lot = await fetch_from_country(client, country_id, f"/lots/{lot_id}")
 
@@ -191,12 +214,9 @@ async def get_lot(country_id: str, lot_id: str, _: dict = Depends(get_current_us
 
 
 @app.get("/api/central/stocks/{country_id}/{lot_id}/mesures", tags=["Stocks"])
-async def get_lot_mesures(country_id: str, lot_id: str, _: dict = Depends(get_current_user)):
-    """
-    Historique température/humidité d'un lot depuis sa date de stockage.
-    Utilisé par le frontend pour afficher les courbes de conditions de conservation.
-    """
-    _require_country(country_id)
+async def get_lot_mesures(country_id: str, lot_id: str, current_user: dict = Depends(get_current_user)):
+    """Historique température/humidité d'un lot."""
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         mesures = await fetch_from_country(client, country_id, f"/lots/{lot_id}/mesures")
 
@@ -206,15 +226,13 @@ async def get_lot_mesures(country_id: str, lot_id: str, _: dict = Depends(get_cu
 
 
 @app.post("/api/central/{country_id}/lots", status_code=201, tags=["Stocks"])
-async def create_lot(country_id: str, lot_data: Dict = Body(...), _: dict = Depends(get_current_user)):
-    """
-    Crée un nouveau lot dans le backend du pays cible.
-    Le corps de la requête est transmis tel quel au backend pays.
-    """
-    _require_country(country_id)
+async def create_lot(country_id: str, request: Request, lot_data: Dict = Body(...), current_user: dict = Depends(get_current_user)):
+    """Crée un nouveau lot dans le backend du pays cible."""
+    _require_access(country_id, current_user)
+    token = extract_bearer(request)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(
-            client, country_id, "/lots", method="POST", json_data=lot_data
+            client, country_id, "/lots", method="POST", json_data=lot_data, token=token
         )
 
     if result is None:
@@ -230,16 +248,19 @@ async def create_lot(country_id: str, lot_data: Dict = Body(...), _: dict = Depe
 @app.get("/api/central/alertes", tags=["Alertes"])
 async def get_consolidated_alertes(
     country: Optional[str] = Query(None, description="Filtrer par pays"),
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """
-    Consolide les alertes (mesures hors seuil + lots périmés) de tous les pays,
-    triées par date décroissante.
+    Consolide les alertes des pays accessibles, triées par date décroissante.
+    Filtre automatiquement selon les accès JWT de l'utilisateur.
     """
+    allowed = _get_allowed_countries(current_user)
     if country:
-        _require_country(country)
-
-    targets = [country] if country else list(COUNTRIES.keys())
+        if country not in allowed:
+            raise HTTPException(status_code=403, detail=f"Accès au pays '{country}' refusé.")
+        targets = [country]
+    else:
+        targets = allowed
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
@@ -267,12 +288,12 @@ async def get_consolidated_alertes(
 
 
 @app.get("/api/central/alertes/count", tags=["Alertes"])
-async def get_consolidated_alertes_count(_: dict = Depends(get_current_user)):
+async def get_consolidated_alertes_count(current_user: dict = Depends(get_current_user)):
     """
-    Retourne le décompte consolidé des alertes non lues pour tous les pays.
+    Retourne le décompte des alertes non lues pour les pays accessibles.
     Inclut un détail par pays pour permettre un affichage segmenté.
     """
-    country_ids = list(COUNTRIES.keys())
+    country_ids = _get_allowed_countries(current_user)
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
             *[fetch_from_country(client, c_id, "/alertes/count") for c_id in country_ids]
@@ -304,9 +325,9 @@ async def get_consolidated_alertes_count(_: dict = Depends(get_current_user)):
 
 
 @app.put("/api/central/alertes/toutes/lues", tags=["Alertes"])
-async def marquer_toutes_alertes_lues(_: dict = Depends(require_role("admin", "responsable_pays"))):
-    """Marque toutes les alertes comme lues dans tous les backends pays actifs."""
-    country_ids = list(COUNTRIES.keys())
+async def marquer_toutes_alertes_lues(current_user: dict = Depends(require_role("admin", "responsable_pays"))):
+    """Marque toutes les alertes comme lues dans les backends pays accessibles."""
+    country_ids = _get_allowed_countries(current_user)
     async with httpx.AsyncClient() as client:
         await asyncio.gather(
             *[
@@ -318,9 +339,9 @@ async def marquer_toutes_alertes_lues(_: dict = Depends(require_role("admin", "r
 
 
 @app.put("/api/central/{country_id}/alertes-mesures/{alerte_id}/lue", tags=["Alertes"])
-async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int, _: dict = Depends(get_current_user)):
+async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int, current_user: dict = Depends(get_current_user)):
     """Marque une alerte de mesure comme lue dans le backend pays concerné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(
             client, country_id, f"/alertes-mesures/{alerte_id}/lue", method="PUT"
@@ -331,9 +352,9 @@ async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int, _: dict = D
 
 
 @app.put("/api/central/{country_id}/alertes-lots/{alerte_id}/lue", tags=["Alertes"])
-async def marquer_alerte_lot_lue(country_id: str, alerte_id: int, _: dict = Depends(get_current_user)):
+async def marquer_alerte_lot_lue(country_id: str, alerte_id: int, current_user: dict = Depends(get_current_user)):
     """Marque une alerte de lot comme lue dans le backend pays concerné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(
             client, country_id, f"/alertes-lots/{alerte_id}/lue", method="PUT"
@@ -346,12 +367,12 @@ async def marquer_alerte_lot_lue(country_id: str, alerte_id: int, _: dict = Depe
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/central/dashboard", tags=["Dashboard"])
-async def get_consolidated_dashboard(_: dict = Depends(get_current_user)):
+async def get_consolidated_dashboard(current_user: dict = Depends(get_current_user)):
     """
-    KPI globaux consolidés (lots conformes / en alerte / périmés, alertes actives)
-    avec un détail par pays pour le tableau de bord siège.
+    KPI consolidés pour les pays accessibles (lots, alertes actives).
+    Filtre automatiquement selon les accès JWT de l'utilisateur.
     """
-    country_ids = list(COUNTRIES.keys())
+    country_ids = _get_allowed_countries(current_user)
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
             *[fetch_from_country(client, c_id, "/stats/dashboard") for c_id in country_ids]
@@ -389,10 +410,32 @@ async def get_consolidated_dashboard(_: dict = Depends(get_current_user)):
 # IMPORTANT : ces routes avec {country_id} générique sont déclarées EN DERNIER
 # pour éviter tout conflit de routage avec les routes spécifiques ci-dessus.
 
+@app.get("/api/central/{country_id}/capteurs", tags=["Proxy pays"])
+async def get_capteurs(country_id: str, current_user: dict = Depends(get_current_user)):
+    """Liste des capteurs IoT d'un pays donné."""
+    _require_access(country_id, current_user)
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_country(client, country_id, "/capteurs")
+    if result is None:
+        raise HTTPException(status_code=502, detail="Backend pays indisponible.")
+    return result
+
+
+@app.get("/api/central/{country_id}/entrepots/{entrepot_id}/mesures", tags=["Proxy pays"])
+async def get_mesures_par_entrepot(country_id: str, entrepot_id: int, current_user: dict = Depends(get_current_user)):
+    """Mesures IoT d'un entrepôt spécifique (filtrées par capteurs de cet entrepôt)."""
+    _require_access(country_id, current_user)
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_country(client, country_id, f"/mesures/par-entrepot/{entrepot_id}")
+    if result is None:
+        raise HTTPException(status_code=502, detail="Backend pays indisponible.")
+    return result
+
+
 @app.get("/api/central/{country_id}/exploitations", tags=["Proxy pays"])
-async def get_exploitations(country_id: str, _: dict = Depends(get_current_user)):
+async def get_exploitations(country_id: str, current_user: dict = Depends(get_current_user)):
     """Liste des exploitations d'un pays donné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(client, country_id, "/exploitations")
     if result is None:
@@ -401,9 +444,9 @@ async def get_exploitations(country_id: str, _: dict = Depends(get_current_user)
 
 
 @app.get("/api/central/{country_id}/entrepots", tags=["Proxy pays"])
-async def get_entrepots(country_id: str, _: dict = Depends(get_current_user)):
+async def get_entrepots(country_id: str, current_user: dict = Depends(get_current_user)):
     """Liste des entrepôts d'un pays donné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(client, country_id, "/entrepots")
     if result is None:
@@ -411,10 +454,19 @@ async def get_entrepots(country_id: str, _: dict = Depends(get_current_user)):
     return result
 
 
+@app.get("/api/central/{country_id}/utilisateurs", tags=["Proxy pays"])
+async def get_utilisateurs_pays(country_id: str, current_user: dict = Depends(get_current_user)):
+    """Liste des utilisateurs enregistrés dans le backend d'un pays donné."""
+    _require_access(country_id, current_user)
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_country(client, country_id, "/utilisateurs")
+    return result or []
+
+
 @app.get("/api/central/{country_id}/mesures", tags=["Proxy pays"])
-async def get_mesures(country_id: str, _: dict = Depends(get_current_user)):
+async def get_mesures(country_id: str, current_user: dict = Depends(get_current_user)):
     """Historique complet des mesures IoT d'un pays donné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(client, country_id, "/mesures")
     if result is None:
@@ -423,9 +475,9 @@ async def get_mesures(country_id: str, _: dict = Depends(get_current_user)):
 
 
 @app.get("/api/central/{country_id}/config", tags=["Proxy pays"])
-async def get_config(country_id: str, _: dict = Depends(require_role("admin", "responsable_pays"))):
+async def get_config(country_id: str, current_user: dict = Depends(require_role("admin", "responsable_pays"))):
     """Configuration (seuils température/humidité, email) d'un pays donné."""
-    _require_country(country_id)
+    _require_access(country_id, current_user)
     async with httpx.AsyncClient() as client:
         result = await fetch_from_country(client, country_id, "/config")
     if result is None:

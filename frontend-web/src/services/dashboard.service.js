@@ -92,6 +92,33 @@ export const dashboardService = {
     }
   },
 
+  // Mesures d'un entrepôt spécifique (via la nouvelle route proxy)
+  getMesuresParEntrepot: async (country, entrepotId) => {
+    try {
+      return await api.get(`/api/central/${country}/entrepots/${entrepotId}/mesures`);
+    } catch {
+      return [];
+    }
+  },
+
+  // Capteurs IoT d'un pays
+  getCapteurs: async (country) => {
+    try {
+      return await api.get(`/api/central/${country}/capteurs`);
+    } catch {
+      return [];
+    }
+  },
+
+  // Configuration seuils d'un pays (403 pour operateur → null)
+  getConfig: async (country) => {
+    try {
+      return await api.get(`/api/central/${country}/config`);
+    } catch {
+      return null;
+    }
+  },
+
   // Compte d'alertes non lues
   getAlertsCount: async () => {
     try {

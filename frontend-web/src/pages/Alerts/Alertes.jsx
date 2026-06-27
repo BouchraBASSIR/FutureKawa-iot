@@ -3,7 +3,6 @@ import { Table, Button, Tag, Space, Tooltip, Drawer, Descriptions, Divider, mess
 import { CheckOutlined, CheckSquareOutlined, ReloadOutlined } from "@ant-design/icons";
 import { alertesService } from "../../services/alertes.service";
 import { useAuth } from "../../context/AuthContext";
-import ScopeBadge from "../../components/common/ScopeBadge";
 import api from "../../services/api";
 import "./Alertes.scss";
 
@@ -36,11 +35,6 @@ const Alertes = () => {
     const unique = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
     return unique.length ? unique : null;
   }, [hasRole, profile]);
-
-  // Entrepôt pour le badge (si 1 seul pays assigné)
-  const scopeAccess = allowedPays?.length === 1
-    ? profile?.accesses?.find(a => a.pays === allowedPays[0])
-    : null;
 
   // Seul admin/responsable_pays peut marquer toutes les alertes lues (backend vérifie aussi)
   const peutMarquerToutes = hasRole("admin", "responsable_pays");
@@ -85,6 +79,8 @@ const Alertes = () => {
     if (!result) {
       setAlerts(prev => prev.map(a => a.id === alert.id ? { ...a, statut: "non_lue" } : a));
       message.error("Impossible de marquer l'alerte comme lue.");
+    } else {
+      window.dispatchEvent(new CustomEvent("alerts-updated", { detail: { delta: -1 } }));
     }
   }, []);
 
@@ -104,13 +100,20 @@ const Alertes = () => {
       await load();
     } else {
       message.success("Toutes les alertes ont été marquées comme lues.");
+      window.dispatchEvent(new CustomEvent("alerts-updated", { detail: { delta: -nonLues.length } }));
     }
   };
 
   const nonLueCount = alerts.filter(a => a.statut === "non_lue").length;
-  const displayed   = filter === "non_lues"
-    ? alerts.filter(a => a.statut === "non_lue")
-    : alerts;
+  const displayed = useMemo(() => {
+    const list = filter === "non_lues"
+      ? alerts.filter(a => a.statut === "non_lue")
+      : [...alerts].sort((a, b) => {
+          if (a.statut !== b.statut) return a.statut === "non_lue" ? -1 : 1;
+          return 0;
+        });
+    return list;
+  }, [alerts, filter]);
 
   // Alerte courante dans le drawer (met à jour le statut en temps réel)
   const detailLive = detail ? (alerts.find(a => a.id === detail.id) || detail) : null;
@@ -188,12 +191,6 @@ const Alertes = () => {
               {nonLueCount} non lue{nonLueCount > 1 ? "s" : ""}
             </span>
           )}
-          {allowedPays?.length === 1 && (
-            <ScopeBadge
-              pays={allowedPays[0]}
-              entrepotId={scopeAccess?.entrepot_id}
-            />
-          )}
         </div>
 
         <div className="alertes-header-right">
@@ -238,6 +235,7 @@ const Alertes = () => {
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 20, showSizeChanger: false, hideOnSinglePage: true }}
+          scroll={{ x: 600 }}
           size="small"
           rowClassName={(r) =>
             `alert-row alert-row--${r.statut === "non_lue" ? "unread" : "read"}${detailLive?.id === r.id ? " alert-row--active" : ""}`

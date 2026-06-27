@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { BellOutlined, SettingOutlined, LogoutOutlined } from "@ant-design/icons";
+import { BellOutlined, SettingOutlined, LogoutOutlined, MenuOutlined } from "@ant-design/icons";
 import { Dropdown, Badge } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -7,6 +7,8 @@ import { dashboardService } from "../../../services/dashboard.service";
 import ProfileModal from "../ProfileModal/ProfileModal";
 import SettingsModal from "../SettingsModal/SettingsModal";
 import "./Header.scss";
+
+const FLAG = { bresil: "🇧🇷", equateur: "🇪🇨", colombie: "🇨🇴" };
 
 const PAGE_TITLES = {
   "/":          "Dashboard",
@@ -17,7 +19,7 @@ const PAGE_TITLES = {
   "/reports":   "Rapports & Analyses",
 };
 
-const HeaderBar = () => {
+const HeaderBar = ({ onMenuClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, logout, hasRole } = useAuth();
@@ -39,10 +41,8 @@ const HeaderBar = () => {
       .then(data => {
         if (!data) return;
         if (!allowedPays) {
-          // Admin : total consolidé toutes countries
           setAlertCount(data.non_lues ?? 0);
         } else {
-          // Utilisateur restreint : somme uniquement sur ses pays autorisés
           const count = allowedPays.reduce(
             (sum, pays) => sum + (data.par_pays?.[pays]?.non_lues ?? 0),
             0
@@ -52,6 +52,15 @@ const HeaderBar = () => {
       })
       .catch(() => {});
   }, [location.pathname, allowedPays]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const delta = e.detail?.delta ?? 0;
+      setAlertCount(prev => Math.max(0, prev + delta));
+    };
+    window.addEventListener("alerts-updated", handler);
+    return () => window.removeEventListener("alerts-updated", handler);
+  }, []);
 
   const rawPath = location.pathname.startsWith("/lots/") ? "/lots" : location.pathname;
   const title = PAGE_TITLES[rawPath] ?? "FutureKawa";
@@ -103,12 +112,24 @@ const HeaderBar = () => {
 
         {/* LEFT */}
         <div className="header-left">
+          <button className="hamburger-btn" onClick={onMenuClick} aria-label="Ouvrir le menu">
+            <MenuOutlined />
+          </button>
           <span className="header-title">{title}</span>
         </div>
 
         {/* RIGHT */}
         <div className="header-right">
 
+          {allowedPays?.length === 1 && (
+            <span className="header-scope-chip">
+              <span>{FLAG[allowedPays[0]]}</span>
+              <span className="header-scope-name">
+                {allowedPays[0].charAt(0).toUpperCase() + allowedPays[0].slice(1)}
+              </span>
+            </span>
+          )}
+          
           <div className="icon-wrapper" onClick={() => navigate("/alerts")} style={{ cursor: "pointer" }}>
             <Badge count={alertCount} size="small" offset={[-2, 2]}>
               <BellOutlined className="icon" />

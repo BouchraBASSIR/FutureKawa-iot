@@ -25,10 +25,15 @@ const ROUTE_MAP = {
   "/reports":   "reports",
 };
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen = false, onClose }) => {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { logout, hasRole } = useAuth();
+
+  // Ferme automatiquement la sidebar mobile lors d'une navigation
+  React.useEffect(() => {
+    if (onClose) onClose();
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const path = location.pathname.startsWith("/lots/") ? "/lots" : location.pathname;
   const selectedKey = ROUTE_MAP[path] ?? "dashboard";
@@ -88,7 +93,7 @@ const Sidebar = () => {
   ] : [];
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar${mobileOpen ? " sidebar--open" : ""}`}>
       <SidebarLogo />
       <div className="sidebar-divider" />
 
