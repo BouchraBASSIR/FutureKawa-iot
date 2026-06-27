@@ -1,15 +1,15 @@
 services:
 
   # =========================================================================
-  # BASE DE DONNÉES - CENTRALE (utilisateurs, rôles, accès)
+  # BASE DE DONNÉES - CENTRALE
   # =========================================================================
 
   postgres-central:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER:     ${CENTRAL_DB_USER}
+      POSTGRES_USER: ${CENTRAL_DB_USER}
       POSTGRES_PASSWORD: ${CENTRAL_DB_PASSWORD}
-      POSTGRES_DB:       futurekawa_central
+      POSTGRES_DB: futurekawa_central
     volumes:
       - postgres-central-data:/var/lib/postgresql/data
     ports:
@@ -23,7 +23,7 @@ services:
       - futurekawa-network
 
   # =========================================================================
-  # BACKEND CENTRAL (SIÈGE)
+  # BACKEND CENTRAL
   # =========================================================================
 
   backend-central:
@@ -31,11 +31,11 @@ services:
       context: ./backend-central
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL:         postgresql://${CENTRAL_DB_USER}:${CENTRAL_DB_PASSWORD}@postgres-central:5432/futurekawa_central
-      JWT_SECRET:           ${JWT_SECRET}
-      ADMIN_EMAIL:          ${ADMIN_EMAIL}
-      ADMIN_PASSWORD:       ${ADMIN_PASSWORD}
-      COUNTRY_BRESIL_URL:   http://backend-pays-bresil:8000
+      DATABASE_URL: postgresql://${CENTRAL_DB_USER}:${CENTRAL_DB_PASSWORD}@postgres-central:5432/futurekawa_central
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      COUNTRY_BRESIL_URL: http://backend-pays-bresil:8000
       COUNTRY_EQUATEUR_URL: http://backend-pays-equateur:8000
       COUNTRY_COLOMBIE_URL: http://backend-pays-colombie:8000
     ports:
@@ -73,8 +73,9 @@ services:
 
   mosquitto-bresil:
     image: eclipse-mosquitto:2
-    volumes:
-      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    configs:
+      - source: mosquitto_conf
+        target: /mosquitto/config/mosquitto.conf
     ports:
       - "1883:1883"
     networks:
@@ -83,9 +84,9 @@ services:
   postgres-bresil:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER:     ${BRESIL_DB_USER}
+      POSTGRES_USER: ${BRESIL_DB_USER}
       POSTGRES_PASSWORD: ${BRESIL_DB_PASSWORD}
-      POSTGRES_DB:       ${BRESIL_DB_NAME}
+      POSTGRES_DB: ${BRESIL_DB_NAME}
     volumes:
       - postgres-bresil-data:/var/lib/postgresql/data
     ports:
@@ -99,26 +100,28 @@ services:
       - futurekawa-network
 
   backend-pays-bresil:
-      build:
-        context: ./backend-pays
-        dockerfile: Dockerfile
-      environment:
-        PAYS:         bresil
-        DATABASE_URL: postgresql://${BRESIL_DB_USER}:${BRESIL_DB_PASSWORD}@postgres-bresil:5432/${BRESIL_DB_NAME}
-        MQTT_BROKER:  mosquitto-bresil
-        MQTT_PORT:    1883
-        JWT_SECRET:   ${JWT_SECRET}
-        SMTP_SERVER:  ${SMTP_SERVER}
-        SMTP_PORT:    ${SMTP_PORT}
-        SENDER_EMAIL:    ${SENDER_EMAIL}
-        SENDER_PASSWORD: ${SENDER_PASSWORD}
-      ports:
-        - "8000:8000"
-      depends_on:
-        postgres-bresil:
-          condition: service_healthy
-      networks:
-        - futurekawa-network
+    build:
+      context: ./backend-pays
+      dockerfile: Dockerfile
+    environment:
+      PAYS: bresil
+      DATABASE_URL: postgresql://${BRESIL_DB_USER}:${BRESIL_DB_PASSWORD}@postgres-bresil:5432/${BRESIL_DB_NAME}
+      MQTT_BROKER: mosquitto-bresil
+      MQTT_PORT: 1883
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      SENDER_PASSWORD: ${SENDER_PASSWORD}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres-bresil:
+        condition: service_healthy
+      mosquitto-bresil:
+        condition: service_started
+    networks:
+      - futurekawa-network
 
   # =========================================================================
   # STACK PAYS : ÉQUATEUR
@@ -126,8 +129,9 @@ services:
 
   mosquitto-equateur:
     image: eclipse-mosquitto:2
-    volumes:
-      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    configs:
+      - source: mosquitto_conf
+        target: /mosquitto/config/mosquitto.conf
     ports:
       - "1885:1883"
     networks:
@@ -136,9 +140,9 @@ services:
   postgres-equateur:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER:     ${EQUATEUR_DB_USER}
+      POSTGRES_USER: ${EQUATEUR_DB_USER}
       POSTGRES_PASSWORD: ${EQUATEUR_DB_PASSWORD}
-      POSTGRES_DB:       ${EQUATEUR_DB_NAME}
+      POSTGRES_DB: ${EQUATEUR_DB_NAME}
     volumes:
       - postgres-equateur-data:/var/lib/postgresql/data
     ports:
@@ -156,14 +160,14 @@ services:
       context: ./backend-pays
       dockerfile: Dockerfile
     environment:
-      PAYS:         equateur
+      PAYS: equateur
       DATABASE_URL: postgresql://${EQUATEUR_DB_USER}:${EQUATEUR_DB_PASSWORD}@postgres-equateur:5432/${EQUATEUR_DB_NAME}
-      MQTT_BROKER:  mosquitto-equateur
-      MQTT_PORT:    1883
-      JWT_SECRET:   ${JWT_SECRET}
-      SMTP_SERVER:  ${SMTP_SERVER}
-      SMTP_PORT:    ${SMTP_PORT}
-      SENDER_EMAIL:    ${SENDER_EMAIL}
+      MQTT_BROKER: mosquitto-equateur
+      MQTT_PORT: 1883
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SENDER_EMAIL: ${SENDER_EMAIL}
       SENDER_PASSWORD: ${SENDER_PASSWORD}
     ports:
       - "8001:8000"
@@ -181,8 +185,9 @@ services:
 
   mosquitto-colombie:
     image: eclipse-mosquitto:2
-    volumes:
-      - ./backend-pays/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    configs:
+      - source: mosquitto_conf
+        target: /mosquitto/config/mosquitto.conf
     ports:
       - "1886:1883"
     networks:
@@ -191,9 +196,9 @@ services:
   postgres-colombie:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER:     ${COLOMBIE_DB_USER}
+      POSTGRES_USER: ${COLOMBIE_DB_USER}
       POSTGRES_PASSWORD: ${COLOMBIE_DB_PASSWORD}
-      POSTGRES_DB:       ${COLOMBIE_DB_NAME}
+      POSTGRES_DB: ${COLOMBIE_DB_NAME}
     volumes:
       - postgres-colombie-data:/var/lib/postgresql/data
     ports:
@@ -211,14 +216,14 @@ services:
       context: ./backend-pays
       dockerfile: Dockerfile
     environment:
-      PAYS:         colombie
+      PAYS: colombie
       DATABASE_URL: postgresql://${COLOMBIE_DB_USER}:${COLOMBIE_DB_PASSWORD}@postgres-colombie:5432/${COLOMBIE_DB_NAME}
-      MQTT_BROKER:  mosquitto-colombie
-      MQTT_PORT:    1883
-      JWT_SECRET:   ${JWT_SECRET}
-      SMTP_SERVER:  ${SMTP_SERVER}
-      SMTP_PORT:    ${SMTP_PORT}
-      SENDER_EMAIL:    ${SENDER_EMAIL}
+      MQTT_BROKER: mosquitto-colombie
+      MQTT_PORT: 1883
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SENDER_EMAIL: ${SENDER_EMAIL}
       SENDER_PASSWORD: ${SENDER_PASSWORD}
     ports:
       - "8002:8000"
@@ -233,6 +238,10 @@ services:
 networks:
   futurekawa-network:
     driver: bridge
+
+configs:
+  mosquitto_conf:
+    file: ./backend-pays/mosquitto.conf
 
 volumes:
   postgres-bresil-data:
