@@ -130,7 +130,7 @@ pipeline {
                         . venv/bin/activate
 
                         # Exécution uniquement des tests unitaires
-                        pytest tests/test_backend_central_unit.py -v
+                        PYTHONPATH=src pytest tests/test_backend_central_unit.py -v
 
                     '''
                 }
@@ -156,7 +156,7 @@ pipeline {
                         # - coverage.xml
                         # - pytest-report.xml
 
-                        pytest tests/test_main.py -v \
+                        PYTHONPATH=src pytest tests/test_main.py -v \
                         --cov=src \
                         --cov-report=xml:coverage.xml \
                         --junitxml=pytest-report.xml
