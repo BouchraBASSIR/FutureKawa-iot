@@ -1,0 +1,321 @@
+// ============================================================================
+// FutureKawa - Backend Central
+// Jenkins Pipeline CI/CD
+//
+//
+//
+// Cette pipeline automatise :
+//
+// 1. Récupération du code Git
+// 2. Installation des dépendances Python
+// 3. Analyse du style de code (Flake8)
+// 4. Exécution des tests unitaires
+// 5. Exécution des tests d'intégration
+// 6. Analyse de la qualité avec SonarQube
+// 7. Construction de l'image Docker
+// 8. Publication sur Docker Hub
+// 9. Déploiement local avec Docker Compose
+// ============================================================================
+
+pipeline {
+
+    // Jenkins peut utiliser n'importe quel agent disponible
+    agent any
+
+    // ------------------------------------------------------------------------
+    // Variables globales utilisées dans tout le pipeline
+    // ------------------------------------------------------------------------
+    environment {
+
+        // Dossier contenant le backend central
+        BACKEND_DIR = "backend-central"
+
+        // Nom local de l'image Docker
+        IMAGE_NAME = "futurekawa-backend-central"
+
+        // Dépôt Docker Hub
+        DOCKERHUB_REPO = "z24ch/futurekawa-backend-central"
+
+        // Clé du projet SonarQube
+        SONAR_PROJECT_KEY = "futurekawa-backend-central"
+    }
+
+    stages {
+
+        // ====================================================================
+        // ETAPE 1
+        // Récupération du code depuis GitHub
+        // ====================================================================
+        stage('Checkout') {
+
+            steps {
+
+                // Clone automatiquement la branche du projet
+                checkout scm
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 2
+        // Installation des dépendances Python
+        // ====================================================================
+        stage('Install dependencies') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    sh '''
+
+                        # Création d'un environnement virtuel Python
+                        python3 -m venv venv
+
+                        # Activation
+                        . venv/bin/activate
+
+                        # Mise à jour de pip
+                        pip install --upgrade pip
+
+                        # Dépendances de l'application
+                        pip install -r src/requirements.txt
+
+                        # Dépendances des tests
+                        pip install -r requirements-test.txt
+
+                        # Installation de Flake8 et Pytest Coverage
+                        pip install flake8 pytest-cov
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 3
+        // Vérification de la qualité du code
+        // ====================================================================
+        stage('Lint') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    sh '''
+
+                        . venv/bin/activate
+
+                        # Analyse du style de code Python
+                        flake8 src tests \
+                        --max-line-length=120 \
+                        --exclude=__pycache__,venv
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 4
+        // Tests Unitaires
+        // ====================================================================
+        stage('Tests unitaires') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    sh '''
+
+                        . venv/bin/activate
+
+                        # Exécution uniquement des tests unitaires
+                        pytest tests/test_backend_central_unit.py -v
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 5
+        // Tests d'intégration + génération des rapports
+        // ====================================================================
+        stage('Tests integration + Coverage') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    sh '''
+
+                        . venv/bin/activate
+
+                        # Lance les tests d'intégration
+                        # Génère :
+                        # - coverage.xml
+                        # - pytest-report.xml
+
+                        pytest tests/test_main.py -v \
+                        --cov=src \
+                        --cov-report=xml:coverage.xml \
+                        --junitxml=pytest-report.xml
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 6
+        // Analyse SonarQube
+        // ====================================================================
+        stage('SonarQube Analysis') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    withSonarQubeEnv('SonarQube') {
+
+                        sh '''
+
+                            sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName="FutureKawa Backend Central" \
+                            -Dsonar.sources=src \
+                            -Dsonar.tests=tests \
+                            -Dsonar.python.coverage.reportPaths=coverage.xml \
+                            -Dsonar.python.xunit.reportPath=pytest-report.xml \
+                            -Dsonar.sourceEncoding=UTF-8
+
+                        '''
+                    }
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 7
+        // Vérification du Quality Gate SonarQube
+        // ====================================================================
+        stage('Quality Gate') {
+
+            steps {
+
+                timeout(time: 2, unit: 'MINUTES') {
+
+                    // Attend la réponse de SonarQube
+                    waitForQualityGate abortPipeline: false
+
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 8
+        // Construction de l'image Docker
+        // ====================================================================
+        stage('Build Docker Image') {
+
+            steps {
+
+                dir("${BACKEND_DIR}") {
+
+                    sh '''
+
+                        # Construction de l'image Docker
+
+                        docker build \
+                        -t ${IMAGE_NAME}:latest .
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 9
+        // Publication sur Docker Hub
+        // ====================================================================
+        stage('Push Docker Hub') {
+
+            steps {
+
+                withCredentials([usernamePassword(
+
+                    credentialsId: 'dockerhub-credentials',
+
+                    usernameVariable: 'DOCKER_USER',
+
+                    passwordVariable: 'DOCKER_PASS'
+
+                )]) {
+
+                    sh '''
+
+                        # Authentification Docker Hub
+
+                        echo "$DOCKER_PASS" | docker login \
+                        -u "$DOCKER_USER" \
+                        --password-stdin
+
+                        # Ajout du tag Docker Hub
+
+                        docker tag \
+                        ${IMAGE_NAME}:latest \
+                        ${DOCKERHUB_REPO}:latest
+
+                        # Publication
+
+                        docker push \
+                        ${DOCKERHUB_REPO}:latest
+
+                    '''
+                }
+            }
+        }
+
+        // ====================================================================
+        // ETAPE 10
+        // Déploiement local
+        // ====================================================================
+        stage('Deploy Local') {
+
+            steps {
+
+                sh '''
+
+                    # Redéploie le backend central
+
+                    docker compose up -d --build backend-central
+
+                '''
+            }
+        }
+    }
+
+    // =========================================================================
+    // Actions exécutées à la fin du pipeline
+    // =========================================================================
+
+    post {
+
+        always {
+
+            echo "Pipeline FutureKawa Backend Central terminé."
+
+        }
+
+        success {
+
+            echo "Toutes les étapes CI/CD se sont exécutées avec succès."
+
+        }
+
+        failure {
+
+            echo "Le pipeline s'est arrêté suite à une erreur."
+
+        }
+    }
+}
