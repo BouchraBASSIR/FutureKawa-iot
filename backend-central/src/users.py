@@ -6,10 +6,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+import httpx
 
 from database import get_db
 from models import Utilisateur, Role, UtilisateurRole, UserAccess
 from auth import hash_password, get_current_user, require_role
+from config import get_configured_countries
+
+COUNTRIES = get_configured_countries()
 
 router = APIRouter(prefix="/api/central/users", tags=["Utilisateurs"])
 
@@ -181,8 +185,10 @@ def remove_role(user_id: int, role_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{user_id}/access", status_code=201, dependencies=[Depends(admin_only)])
 def assign_access(user_id: int, body: AccessAssign, db: Session = Depends(get_db)):
-    if not db.query(Utilisateur).filter(Utilisateur.id_utilisateur == user_id).first():
+    user = db.query(Utilisateur).filter(Utilisateur.id_utilisateur == user_id).first()
+    if not user:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
     db.add(UserAccess(
         id_utilisateur=user_id,
         pays=body.pays,
@@ -190,7 +196,29 @@ def assign_access(user_id: int, body: AccessAssign, db: Session = Depends(get_db
         entrepot_id=body.entrepot_id,
     ))
     db.commit()
-    return {"message": "Accès assigné"}
+
+    # Propager l'utilisateur dans le backend-pays correspondant
+    pays_config = COUNTRIES.get(body.pays)
+    if pays_config:
+        try:
+            base_url = pays_config["url"].rstrip("/")
+            with httpx.Client(timeout=3.0) as client:
+                # Vérifie si l'utilisateur existe déjà dans le backend-pays
+                existing = client.get(f"{base_url}/utilisateurs")
+                if existing.status_code == 200:
+                    emails = [u.get("email") for u in existing.json()]
+                    if user.email not in emails:
+                        client.post(f"{base_url}/utilisateurs", json={
+                            "nom":          user.nom,
+                            "prenom":       user.prenom,
+                            "email":        user.email,
+                            "mot_de_passe": "FutureKawa2024!",
+                            "actif":        True,
+                        })
+        except Exception:
+            pass  # La propagation est best-effort - ne bloque pas l'assignation
+
+    return {"message": f"Accès assigné et utilisateur propagé vers {body.pays}"}
 
 
 @router.delete("/{user_id}/access/{access_id}", status_code=204, dependencies=[Depends(admin_only)])

@@ -12,7 +12,7 @@ from auth import hash_password
 logger = logging.getLogger("backend-central")
 
 ROLES = [
-    {"libelle": "admin",            "description": "Accès total — gestion utilisateurs et configuration"},
+    {"libelle": "admin",            "description": "Accès total - gestion utilisateurs et configuration"},
     {"libelle": "responsable_pays", "description": "Gestion des lots et alertes pour un pays"},
     {"libelle": "operateur",        "description": "Saisie de lots pour un entrepôt assigné"},
 ]

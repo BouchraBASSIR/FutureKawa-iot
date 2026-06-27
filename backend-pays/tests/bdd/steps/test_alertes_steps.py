@@ -1,5 +1,5 @@
 """
-Steps pytest-bdd — Feature: Gestion des alertes
+Steps pytest-bdd - Feature: Gestion des alertes
 """
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios
@@ -44,7 +44,7 @@ def alerte_non_lue(client, setup_capteur):
         "id_mesure": mesure_id
     })
     assert resp.status_code == 201, (
-        f"Précondition échouée — impossible de créer l'alerte: {resp.text}"
+        f"Précondition échouée - impossible de créer l'alerte: {resp.text}"
     )
     return {"id": resp.json()["id_alerte_mesure"]}
 
@@ -97,7 +97,7 @@ def marquer_alerte_lue(client, alerte_context):
 @then(parsers.parse("la réponse a le statut {status:d}"))
 def verifier_statut(response, status):
     assert response.status_code == status, (
-        f"Attendu {status}, reçu {response.status_code} — body: {response.text}"
+        f"Attendu {status}, reçu {response.status_code} - body: {response.text}"
     )
 
 

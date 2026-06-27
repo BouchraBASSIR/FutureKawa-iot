@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 
-# Clé partagée avec backend-central — doit être identique via variable d'env
+# Clé partagée avec backend-central - doit être identique via variable d'env
 JWT_SECRET    = os.getenv("JWT_SECRET", "futurekawa-dev-secret-change-in-prod")
 JWT_ALGORITHM = "HS256"
 AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() == "true"
@@ -46,7 +46,7 @@ def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> Optional[dict]:
     """Retourne le payload JWT si présent et valide, sinon None.
-    Ne lève jamais d'exception — idéal pour les routes optionnellement protégées."""
+    Ne lève jamais d'exception - idéal pour les routes optionnellement protégées."""
     if not credentials:
         return None
     try:

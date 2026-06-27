@@ -1,9 +1,9 @@
 import request from "superagent";
 import { authService } from "./auth.services";
 
-const API_URL = process.env.API_BASE_URL;
+const API_URL = process.env.API_BASE_URL || "";
 
-// Cache en mémoire avec TTL — évite de refaire les appels GET à chaque navigation
+// Cache en mémoire avec TTL - évite de refaire les appels GET à chaque navigation
 const CACHE_TTL = 30_000; // 30 secondes
 const _cache = new Map();
 

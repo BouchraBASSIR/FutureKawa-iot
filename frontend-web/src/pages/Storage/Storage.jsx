@@ -24,7 +24,7 @@ const lotColumns = [
   { title: "Statut",        dataIndex: "statut",        key: "statut",
     render: v => <Tag color={STATUT_TAG[v] || "default"}>{v}</Tag> },
   { title: "Date stockage", dataIndex: "date_stockage", key: "date_stockage",
-    render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "—" },
+    render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-" },
 ];
 
 const alerteColumns = [
@@ -34,7 +34,7 @@ const alerteColumns = [
   { title: "Statut",  dataIndex: "statut",      key: "statut",
     width: 90,  render: v => <Tag color={v === "non_lue" ? "orange" : "default"}>{v}</Tag> },
   { title: "Date",    dataIndex: "date_alerte", key: "date",
-    width: 130, render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "—" },
+    width: 130, render: v => v ? new Date(v).toLocaleDateString("fr-FR") : "-" },
 ];
 
 const GaugeCard = ({ label, value, unit, max, thresholdWarn, thresholdCrit }) => {
@@ -54,7 +54,7 @@ const GaugeCard = ({ label, value, unit, max, thresholdWarn, thresholdCrit }) =>
         <RadialBar dataKey="value" cornerRadius={6} background={{ fill: "#f0f0f0" }} />
       </RadialBarChart>
       <div className="gauge-value" style={{ color: fill }}>
-        {value != null ? value : "—"}<span className="gauge-unit">{unit}</span>
+        {value != null ? value : "-"}<span className="gauge-unit">{unit}</span>
       </div>
       <div className="gauge-sub">Seuil critique : {thresholdCrit}{unit}</div>
     </Card>
@@ -98,7 +98,7 @@ const Storage = () => {
             const exploitation = exploitations.find(ex => ex.id_exploitation === e.id_exploitation);
             const entrepotLots  = lots.filter(l => l.id_entrepot === e.id_entrepot);
             opts.push({
-              label:      `${FLAG[countryId]} ${e.nom} — ${e.localisation}`,
+              label:      `${FLAG[countryId]} ${e.nom} - ${e.localisation}`,
               value:      `${countryId}-${e.id_entrepot}`,
               entrepot:   e,
               exploitation,
@@ -155,8 +155,8 @@ const Storage = () => {
   });
   const chartData = Object.values(byDay).slice(-14).map(d => ({
     date: d.date,
-    temp: parseFloat((d.temps.reduce((s, v) => s + v, 0) / d.temps.length).toFixed(1)),
-    hum:  parseFloat((d.hums.reduce((s, v)  => s + v, 0) / d.hums.length).toFixed(1)),
+    temp: parseFloat(Math.max(...d.temps).toFixed(1)),
+    hum:  parseFloat(Math.max(...d.hums).toFixed(1)),
   }));
 
   return (
@@ -203,7 +203,7 @@ const Storage = () => {
                     day: "2-digit", month: "2-digit",
                     hour: "2-digit", minute: "2-digit",
                   })
-                : "—"}
+                : "-"}
             </div>
           </Col>
         </Row>
@@ -260,7 +260,7 @@ const Storage = () => {
                   {chartData.length > 0 ? (
                     <>
                       <div style={{ fontWeight: 600, margin: "24px 0 12px" }}>
-                        Historique — 14 derniers jours
+                        Pic journalier - 14 derniers jours
                       </div>
                       <Row gutter={[16, 16]}>
                         <Col xs={24} lg={12}>
@@ -269,7 +269,7 @@ const Storage = () => {
                               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 10 }} />
+                                <YAxis tick={{ fontSize: 10 }} unit="°C" />
                                 <Tooltip />
                                 <Line dataKey="temp" stroke="#fa8c16" strokeWidth={2} dot={false} name="T°" />
                               </LineChart>
@@ -282,7 +282,7 @@ const Storage = () => {
                               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                                <YAxis tick={{ fontSize: 10 }} />
+                                <YAxis tick={{ fontSize: 10 }} unit="%" />
                                 <Tooltip />
                                 <Line dataKey="hum" stroke="#1677ff" strokeWidth={2} dot={false} name="H%" />
                               </LineChart>

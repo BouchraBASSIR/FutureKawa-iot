@@ -1,14 +1,14 @@
 import asyncio
 import logging
 import httpx
-from fastapi import FastAPI, HTTPException, Query, Body, Request
+from fastapi import FastAPI, Depends, HTTPException, Query, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any, Optional
 
 from config import get_configured_countries
 from database import engine, SessionLocal
 from models import Base
-from auth import router as auth_router, extract_bearer
+from auth import router as auth_router, extract_bearer, get_current_user, require_role
 from users import router as users_router
 from seed import run_seed
 
@@ -111,7 +111,7 @@ def home():
 # ── Pays ─────────────────────────────────────────────────────────────────────
 
 @app.get("/api/central/countries", tags=["Pays"])
-async def list_countries():
+async def list_countries(_: dict = Depends(get_current_user)):
     """
     Retourne la liste des pays configurés avec un healthcheck live
     sur chaque backend pays.
@@ -139,11 +139,12 @@ async def get_consolidated_stocks(
     country: Optional[str] = Query(
         None,
         description="Filtrer par id pays (ex: bresil, equateur, colombie)",
-    )
+    ),
+    _: dict = Depends(get_current_user),
 ):
     """
     Consolide les lots de tous les pays actifs, triés en ordre FIFO
-    (date_stockage croissante — les plus anciens en premier pour expédition prioritaire).
+    (date_stockage croissante - les plus anciens en premier pour expédition prioritaire).
     Accepte un paramètre `country` pour filtrer sur un seul pays.
     """
     if country:
@@ -171,7 +172,7 @@ async def get_consolidated_stocks(
 
 
 @app.get("/api/central/stocks/{country_id}/{lot_id}", tags=["Stocks"])
-async def get_lot(country_id: str, lot_id: str):
+async def get_lot(country_id: str, lot_id: str, _: dict = Depends(get_current_user)):
     """
     Récupère le détail d'un lot précis depuis le backend du pays concerné.
     """
@@ -190,7 +191,7 @@ async def get_lot(country_id: str, lot_id: str):
 
 
 @app.get("/api/central/stocks/{country_id}/{lot_id}/mesures", tags=["Stocks"])
-async def get_lot_mesures(country_id: str, lot_id: str):
+async def get_lot_mesures(country_id: str, lot_id: str, _: dict = Depends(get_current_user)):
     """
     Historique température/humidité d'un lot depuis sa date de stockage.
     Utilisé par le frontend pour afficher les courbes de conditions de conservation.
@@ -205,7 +206,7 @@ async def get_lot_mesures(country_id: str, lot_id: str):
 
 
 @app.post("/api/central/{country_id}/lots", status_code=201, tags=["Stocks"])
-async def create_lot(country_id: str, lot_data: Dict = Body(...)):
+async def create_lot(country_id: str, lot_data: Dict = Body(...), _: dict = Depends(get_current_user)):
     """
     Crée un nouveau lot dans le backend du pays cible.
     Le corps de la requête est transmis tel quel au backend pays.
@@ -228,7 +229,8 @@ async def create_lot(country_id: str, lot_data: Dict = Body(...)):
 
 @app.get("/api/central/alertes", tags=["Alertes"])
 async def get_consolidated_alertes(
-    country: Optional[str] = Query(None, description="Filtrer par pays")
+    country: Optional[str] = Query(None, description="Filtrer par pays"),
+    _: dict = Depends(get_current_user),
 ):
     """
     Consolide les alertes (mesures hors seuil + lots périmés) de tous les pays,
@@ -265,7 +267,7 @@ async def get_consolidated_alertes(
 
 
 @app.get("/api/central/alertes/count", tags=["Alertes"])
-async def get_consolidated_alertes_count():
+async def get_consolidated_alertes_count(_: dict = Depends(get_current_user)):
     """
     Retourne le décompte consolidé des alertes non lues pour tous les pays.
     Inclut un détail par pays pour permettre un affichage segmenté.
@@ -302,7 +304,7 @@ async def get_consolidated_alertes_count():
 
 
 @app.put("/api/central/alertes/toutes/lues", tags=["Alertes"])
-async def marquer_toutes_alertes_lues():
+async def marquer_toutes_alertes_lues(_: dict = Depends(require_role("admin", "responsable_pays"))):
     """Marque toutes les alertes comme lues dans tous les backends pays actifs."""
     country_ids = list(COUNTRIES.keys())
     async with httpx.AsyncClient() as client:
@@ -316,7 +318,7 @@ async def marquer_toutes_alertes_lues():
 
 
 @app.put("/api/central/{country_id}/alertes-mesures/{alerte_id}/lue", tags=["Alertes"])
-async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int):
+async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int, _: dict = Depends(get_current_user)):
     """Marque une alerte de mesure comme lue dans le backend pays concerné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
@@ -329,7 +331,7 @@ async def marquer_alerte_mesure_lue(country_id: str, alerte_id: int):
 
 
 @app.put("/api/central/{country_id}/alertes-lots/{alerte_id}/lue", tags=["Alertes"])
-async def marquer_alerte_lot_lue(country_id: str, alerte_id: int):
+async def marquer_alerte_lot_lue(country_id: str, alerte_id: int, _: dict = Depends(get_current_user)):
     """Marque une alerte de lot comme lue dans le backend pays concerné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
@@ -344,7 +346,7 @@ async def marquer_alerte_lot_lue(country_id: str, alerte_id: int):
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/central/dashboard", tags=["Dashboard"])
-async def get_consolidated_dashboard():
+async def get_consolidated_dashboard(_: dict = Depends(get_current_user)):
     """
     KPI globaux consolidés (lots conformes / en alerte / périmés, alertes actives)
     avec un détail par pays pour le tableau de bord siège.
@@ -388,7 +390,7 @@ async def get_consolidated_dashboard():
 # pour éviter tout conflit de routage avec les routes spécifiques ci-dessus.
 
 @app.get("/api/central/{country_id}/exploitations", tags=["Proxy pays"])
-async def get_exploitations(country_id: str):
+async def get_exploitations(country_id: str, _: dict = Depends(get_current_user)):
     """Liste des exploitations d'un pays donné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
@@ -399,7 +401,7 @@ async def get_exploitations(country_id: str):
 
 
 @app.get("/api/central/{country_id}/entrepots", tags=["Proxy pays"])
-async def get_entrepots(country_id: str):
+async def get_entrepots(country_id: str, _: dict = Depends(get_current_user)):
     """Liste des entrepôts d'un pays donné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
@@ -410,7 +412,7 @@ async def get_entrepots(country_id: str):
 
 
 @app.get("/api/central/{country_id}/mesures", tags=["Proxy pays"])
-async def get_mesures(country_id: str):
+async def get_mesures(country_id: str, _: dict = Depends(get_current_user)):
     """Historique complet des mesures IoT d'un pays donné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
@@ -421,7 +423,7 @@ async def get_mesures(country_id: str):
 
 
 @app.get("/api/central/{country_id}/config", tags=["Proxy pays"])
-async def get_config(country_id: str):
+async def get_config(country_id: str, _: dict = Depends(require_role("admin", "responsable_pays"))):
     """Configuration (seuils température/humidité, email) d'un pays donné."""
     _require_country(country_id)
     async with httpx.AsyncClient() as client:
