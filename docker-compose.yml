@@ -1,7 +1,7 @@
 services:
 
   # =========================================================================
-  # BASE DE DONNÉES — CENTRALE (utilisateurs, rôles, accès)
+  # BASE DE DONNÉES - CENTRALE (utilisateurs, rôles, accès)
   # =========================================================================
 
   postgres-central:
@@ -99,7 +99,9 @@ services:
       - futurekawa-network
 
   backend-pays-bresil:
-      image: josef3215/futurekawa-backend-pays:latest
+      build:
+        context: ./backend-pays
+        dockerfile: Dockerfile
       environment:
         PAYS:         bresil
         DATABASE_URL: postgresql://${BRESIL_DB_USER}:${BRESIL_DB_PASSWORD}@postgres-bresil:5432/${BRESIL_DB_NAME}
@@ -150,7 +152,9 @@ services:
       - futurekawa-network
 
   backend-pays-equateur:
-    image: josef3215/futurekawa-backend-pays:latest
+    build:
+      context: ./backend-pays
+      dockerfile: Dockerfile
     environment:
       PAYS:         equateur
       DATABASE_URL: postgresql://${EQUATEUR_DB_USER}:${EQUATEUR_DB_PASSWORD}@postgres-equateur:5432/${EQUATEUR_DB_NAME}
@@ -203,7 +207,9 @@ services:
       - futurekawa-network
 
   backend-pays-colombie:
-    image: josef3215/futurekawa-backend-pays:latest
+    build:
+      context: ./backend-pays
+      dockerfile: Dockerfile
     environment:
       PAYS:         colombie
       DATABASE_URL: postgresql://${COLOMBIE_DB_USER}:${COLOMBIE_DB_PASSWORD}@postgres-colombie:5432/${COLOMBIE_DB_NAME}

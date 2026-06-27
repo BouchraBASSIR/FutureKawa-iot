@@ -1,5 +1,5 @@
 """
-FutureKawa — conftest.py (racine)
+FutureKawa - conftest.py (racine)
 Configuration pytest partagée : fixtures de base, override DB SQLite.
 Chargé automatiquement par pytest avant tous les tests.
 """
@@ -57,7 +57,7 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(scope="session")
 def client():
-    """Client de test FastAPI — session complète."""
+    """Client de test FastAPI - session complète."""
     Base.metadata.create_all(bind=engine_test)
     with TestClient(app) as c:
         yield c
@@ -75,7 +75,7 @@ def clean_db():
 
 
 # ════════════════════════════════════════════════════════════
-# CONFIG — Données de test réutilisables
+# CONFIG - Données de test réutilisables
 # ════════════════════════════════════════════════════════════
 
 @pytest.fixture
@@ -186,7 +186,7 @@ def utilisateur_ethiopie(client):
 
 
 # ════════════════════════════════════════════════════════════
-# LOTS — Données complètes (FK résolues via fixtures ci-dessus)
+# LOTS - Données complètes (FK résolues via fixtures ci-dessus)
 # ════════════════════════════════════════════════════════════
 
 @pytest.fixture
@@ -210,7 +210,7 @@ def lot_ethiopia_data(entrepot_bresil, utilisateur_ethiopie):
 
 
 # ════════════════════════════════════════════════════════════
-# MESURE — Payload réutilisable
+# MESURE - Payload réutilisable
 # ════════════════════════════════════════════════════════════
 
 @pytest.fixture

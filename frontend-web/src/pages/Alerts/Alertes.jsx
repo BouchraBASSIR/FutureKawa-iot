@@ -1,10 +1,9 @@
-// Mock gardé en commentaire pour référence / fallback hors-ligne
-// import { mockAlerts } from "../../services/mockData";
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, Button, Tag, Space, Tooltip, Drawer, Descriptions, Divider, message } from "antd";
 import { CheckOutlined, CheckSquareOutlined, ReloadOutlined } from "@ant-design/icons";
 import { alertesService } from "../../services/alertes.service";
+import { useAuth } from "../../context/AuthContext";
+import ScopeBadge from "../../components/common/ScopeBadge";
 import api from "../../services/api";
 import "./Alertes.scss";
 
@@ -25,16 +24,48 @@ const fmt = (iso) =>
     : "-";
 
 const Alertes = () => {
+  const { hasRole, profile } = useAuth();
   const [alerts, setAlerts]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter]   = useState("toutes");
-  const [detail, setDetail]   = useState(null);   // alerte ouverte dans le panneau
+  const [detail, setDetail]   = useState(null);
+
+  // Pays accessibles selon le rôle (null = admin = pas de restriction)
+  const allowedPays = useMemo(() => {
+    if (hasRole("admin")) return null;
+    const unique = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
+    return unique.length ? unique : null;
+  }, [hasRole, profile]);
+
+  // Entrepôt pour le badge (si 1 seul pays assigné)
+  const scopeAccess = allowedPays?.length === 1
+    ? profile?.accesses?.find(a => a.pays === allowedPays[0])
+    : null;
+
+  // Seul admin/responsable_pays peut marquer toutes les alertes lues (backend vérifie aussi)
+  const peutMarquerToutes = hasRole("admin", "responsable_pays");
 
   const load = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) api.clearCache("/alertes");
     setLoading(true);
     try {
-      const data = await alertesService.getAll();
+      let data;
+      if (!allowedPays) {
+        // Admin : toutes les alertes
+        data = await alertesService.getAll();
+      } else if (allowedPays.length === 1) {
+        // 1 seul pays : filtre direct
+        data = await alertesService.getAll(allowedPays[0]);
+      } else {
+        // Plusieurs pays : requêtes parallèles + fusion
+        const results = await Promise.allSettled(
+          allowedPays.map(p => alertesService.getAll(p))
+        );
+        data = results
+          .filter(r => r.status === "fulfilled")
+          .flatMap(r => r.value)
+          .sort((a, b) => new Date(b.date_alerte) - new Date(a.date_alerte));
+      }
       setAlerts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Erreur chargement alertes:", err);
@@ -42,7 +73,7 @@ const Alertes = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [allowedPays]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -157,6 +188,12 @@ const Alertes = () => {
               {nonLueCount} non lue{nonLueCount > 1 ? "s" : ""}
             </span>
           )}
+          {allowedPays?.length === 1 && (
+            <ScopeBadge
+              pays={allowedPays[0]}
+              entrepotId={scopeAccess?.entrepot_id}
+            />
+          )}
         </div>
 
         <div className="alertes-header-right">
@@ -180,7 +217,7 @@ const Alertes = () => {
               <Button icon={<ReloadOutlined />} size="small" onClick={() => load(true)} />
             </Tooltip>
 
-            {nonLueCount > 0 && (
+            {peutMarquerToutes && nonLueCount > 0 && (
               <Button
                 icon={<CheckSquareOutlined />}
                 size="small"
@@ -233,7 +270,11 @@ const Alertes = () => {
         styles={{ body: { padding: "16px 24px" } }}
       >
         {detailLive && (() => {
-          const unit = detailLive.type_alerte === "temperature" ? "°C" : "%";
+          const unit = detailLive.type_alerte === "temperature"
+            ? "°C"
+            : detailLive.type_alerte === "humidite"
+              ? "%" : "";
+          const isPerime = detailLive.type_alerte === "perime";
           return (
             <>
               <Descriptions column={1} size="small" labelStyle={{ color: "#8c8c8c", width: 130 }}>
@@ -249,7 +290,7 @@ const Alertes = () => {
                 )}
               </Descriptions>
 
-              {detailLive.valeur_mesuree !== undefined && (
+              {!isPerime && detailLive.valeur_mesuree !== undefined && (
                 <>
                   <Divider style={{ margin: "12px 0" }} />
                   <Descriptions column={1} size="small" labelStyle={{ color: "#8c8c8c", width: 130 }}>
@@ -258,7 +299,7 @@ const Alertes = () => {
                     </Descriptions.Item>
                     {detailLive.seuil_min !== undefined && (
                       <Descriptions.Item label="Plage acceptable">
-                        {detailLive.seuil_min}{unit} - {detailLive.seuil_max}{unit}
+                        {detailLive.seuil_min}{unit} – {detailLive.seuil_max}{unit}
                       </Descriptions.Item>
                     )}
                   </Descriptions>

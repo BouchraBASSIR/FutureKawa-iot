@@ -113,8 +113,8 @@ const LotDetail = () => {
     });
     return Object.values(byDay).map(d => ({
       date: d.date,
-      temperature: parseFloat((d.temps.reduce((s, v) => s + v, 0) / d.temps.length).toFixed(1)),
-      humidite:    parseFloat((d.hums.reduce((s, v) => s + v, 0) / d.hums.length).toFixed(1)),
+      temperature: parseFloat(Math.max(...d.temps).toFixed(1)),
+      humidite:    parseFloat(Math.max(...d.hums).toFixed(1)),
     }));
   };
 
@@ -143,11 +143,11 @@ const LotDetail = () => {
         {/* Infos lot */}
         <Col xs={24} lg={12}>
           <Card title="Informations lot" variant="borderless">
-            <Descriptions column={2} size="small" labelStyle={{ color: "#8c8c8c", fontWeight: 500 }}>
-              <Descriptions.Item label="ID">{lot.id_lot}</Descriptions.Item>
+            <Descriptions column={{ xs: 1, sm: 2 }} size="small" labelStyle={{ color: "#8c8c8c", fontWeight: 500 }}>
+              <Descriptions.Item label="ID"><code>{lot.id_lot}</code></Descriptions.Item>
               <Descriptions.Item label="Pays">{flag} {lot.pays_nom || countryId}</Descriptions.Item>
-              <Descriptions.Item label="Entrepôt">#{lot.id_entrepot}</Descriptions.Item>
-              <Descriptions.Item label="Utilisateur">#{lot.id_utilisateur}</Descriptions.Item>
+              <Descriptions.Item label="Entrepôt">Entrepôt n°{lot.id_entrepot}</Descriptions.Item>
+              <Descriptions.Item label="Responsable">Opérateur n°{lot.id_utilisateur}</Descriptions.Item>
               <Descriptions.Item label="Date entrée">
                 {lot.date_stockage ? new Date(lot.date_stockage).toLocaleDateString("fr-FR") : "-"}
               </Descriptions.Item>
@@ -161,21 +161,21 @@ const LotDetail = () => {
         {/* Infos stockage */}
         <Col xs={24} lg={12}>
           <Card title={<><EnvironmentOutlined /> Informations de stockage</>} variant="borderless">
-            <Descriptions column={1} size="small" labelStyle={{ color: "#8c8c8c", fontWeight: 500 }}>
+            <Descriptions column={{ xs: 1, sm: 1 }} size="small" labelStyle={{ color: "#8c8c8c", fontWeight: 500 }}>
               <Descriptions.Item label="Pays">{flag} {lot.pays_nom || countryId}</Descriptions.Item>
               <Descriptions.Item label="Durée en stock">
                 {joursStock !== null ? (
                   <span style={{ color: joursStock > 330 ? "#ff4d4f" : undefined, fontWeight: 600 }}>
                     {joursStock} jours
                   </span>
-                ) : "—"}
+                ) : "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Jours avant péremption">
                 {joursAvantPeremption !== null ? (
                   <span style={{ color: joursAvantPeremption < 30 ? "#ff4d4f" : joursAvantPeremption < 60 ? "#fa8c16" : "#52c41a", fontWeight: 600 }}>
                     {joursAvantPeremption} jours
                   </span>
-                ) : "—"}
+                ) : "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Mesures disponibles">
                 {mesures.length}
@@ -187,7 +187,7 @@ const LotDetail = () => {
         {/* Graphique température */}
         <Col xs={24} lg={12}>
           <Card
-            title={`Historique températures (°C) - ${chartData.length} jour${chartData.length > 1 ? "s" : ""}`}
+            title={`Pic températures (°C) - ${chartData.length} jour${chartData.length > 1 ? "s" : ""}`}
             variant="borderless"
           >
             {chartData.length === 0 ? (
@@ -208,7 +208,7 @@ const LotDetail = () => {
         {/* Graphique humidité */}
         <Col xs={24} lg={12}>
           <Card
-            title={`Historique humidité (%) - ${chartData.length} jour${chartData.length > 1 ? "s" : ""}`}
+            title={`Pic humidité (%) - ${chartData.length} jour${chartData.length > 1 ? "s" : ""}`}
             variant="borderless"
           >
             {chartData.length === 0 ? (

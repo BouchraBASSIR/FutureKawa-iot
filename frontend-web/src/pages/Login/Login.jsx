@@ -13,14 +13,14 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    const success = login(email, password);
+  const handleLogin = async () => {
+    const result = await login(email, password);
 
-    if (success) {
+    if (result.success) {
       message.success("Connexion réussie");
       navigate("/");
     } else {
-      message.error("Erreur de connexion");
+      message.error(result.error ?? "Erreur de connexion");
     }
   };
 

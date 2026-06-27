@@ -1,5 +1,5 @@
 """
-FutureKawa — Backend FastAPI (MLD complète)
+FutureKawa - Backend FastAPI (MLD complète)
 """
 import os
 import json
@@ -48,7 +48,7 @@ MQTT_TOPIC  = "capteur/mesures"
 AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() in ("1", "true", "yes", "on")
 
 # =====================
-# CONFIG EMAIL — 100% depuis variables d'environnement
+# CONFIG EMAIL - 100% depuis variables d'environnement
 # =====================
 SMTP_SERVER     = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT       = int(os.getenv("SMTP_PORT", 587))
@@ -188,7 +188,7 @@ class UtilisateurEntrepotCreate(BaseModel):
 # =====================
 def send_email(receiver_email, subject, body):
     if not SENDER_EMAIL or not SENDER_PASSWORD:
-        print("SENDER_EMAIL ou SENDER_PASSWORD non definis — email non envoye")
+        print("SENDER_EMAIL ou SENDER_PASSWORD non definis - email non envoye")
         return
 
     try:
@@ -343,7 +343,7 @@ def verifier_alertes_lots():
 
             alerte = AlerteLot(
                 message     = (
-                    f"Lot {lot.id_lot} perime — stocke depuis "
+                    f"Lot {lot.id_lot} perime - stocke depuis "
                     f"{lot.date_stockage.strftime('%Y-%m-%d')}"
                 ),
                 id_lot      = lot.id_lot,
@@ -402,7 +402,7 @@ L'equipe FutureKawa
 
 
 # =====================
-# MQTT — RECEPTION MESURES
+# MQTT - RECEPTION MESURES
 # =====================
 def on_message(client, userdata, msg):
     try:
@@ -452,7 +452,7 @@ def demarrer_mqtt():
             client.on_message = on_message
             client.connect(MQTT_BROKER, MQTT_PORT, 60)
             client.subscribe(MQTT_TOPIC)
-            print(f"MQTT connecte sur {MQTT_BROKER}:{MQTT_PORT} — topic: {MQTT_TOPIC}")
+            print(f"MQTT connecte sur {MQTT_BROKER}:{MQTT_PORT} - topic: {MQTT_TOPIC}")
             client.loop_forever()
         except Exception as e:
             print(f"MQTT echec connexion : {e} - retry dans 5s")
@@ -460,7 +460,7 @@ def demarrer_mqtt():
 
 
 # =====================
-# TÂCHE PÉRIODIQUE — VÉRIFICATION LOTS
+# TÂCHE PÉRIODIQUE - VÉRIFICATION LOTS
 # =====================
 def tache_periodique():
     while True:

@@ -1,5 +1,5 @@
 """
-conftest.py — Fixtures partagées pour les tests BDD FutureKawa
+conftest.py - Fixtures partagées pour les tests BDD FutureKawa
 Base SQLite en mémoire (pas de PostgreSQL requis dans le pipeline CI)
 """
 import os

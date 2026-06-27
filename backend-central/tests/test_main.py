@@ -376,7 +376,7 @@ async def test_get_alertes_count(mock_fetch):
 
 @patch("main.fetch_from_country")
 async def test_alertes_count_offline_country(mock_fetch):
-    """Un pays offline ne doit pas casser le total — juste signaler offline."""
+    """Un pays offline ne doit pas casser le total - juste signaler offline."""
     mock_fetch.side_effect = make_side_effect({
         ("bresil", "/alertes/count"): ALERTES_COUNT_SAMPLE,
         # equateur et colombie offline → None

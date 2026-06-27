@@ -1,8 +1,5 @@
-// Mock gardé en commentaire pour référence
-// import { reportData, kpiData, mockLots } from "../../services/mockData";
-
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Button, Table, Tag, Statistic, Spin } from "antd";
+import { Row, Col, Card, Button, Table, Tag, Statistic, Spin, message } from "antd";
 import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from "@ant-design/icons";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -29,6 +26,16 @@ const statutColumns = [
   { title: "Lots",   dataIndex: "count", key: "count", render: v => <strong>{v}</strong> },
   { title: "Part",   dataIndex: "pct",   key: "pct",   render: v => `${v} %` },
 ];
+
+const downloadCSV = (filename, headers, rows) => {
+  const escape = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines  = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))];
+  const blob   = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url    = URL.createObjectURL(blob);
+  const a      = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
 
 const Reports = () => {
   const [loading, setLoading]   = useState(true);
@@ -178,25 +185,74 @@ const Reports = () => {
         <Col xs={24} lg={12}>
           <Card title="Exporter les rapports" variant="borderless">
             <div className="export-grid">
-              {[
-                { icon: <FileExcelOutlined />, label: "Inventaire lots (.xlsx)",     color: "#52c41a" },
-                { icon: <FileExcelOutlined />, label: "Historique alertes (.xlsx)",  color: "#52c41a" },
-                { icon: <FilePdfOutlined />,   label: "Rapport qualité (.pdf)",      color: "#ff4d4f" },
-                { icon: <FilePdfOutlined />,   label: "Rapport températures (.pdf)", color: "#ff4d4f" },
-                { icon: <DownloadOutlined />,  label: "Données brutes (.csv)",       color: "#1677ff" },
-                { icon: <DownloadOutlined />,  label: "Traçabilité complète (.csv)", color: "#1677ff" },
-              ].map(e => (
-                <Button
-                  key={e.label} icon={e.icon}
-                  style={{ justifyContent: "flex-start", color: e.color, borderColor: `${e.color}55` }}
-                  onClick={() => {}}
-                >
-                  {e.label}
-                </Button>
-              ))}
-            </div>
-            <div style={{ marginTop: 12, fontSize: 12, color: "#8c8c8c" }}>
-              * Les exports sont simulés - intégration backend à prévoir.
+              <Button
+                icon={<DownloadOutlined />}
+                style={{ justifyContent: "flex-start", color: "#1677ff", borderColor: "#1677ff55" }}
+                onClick={() => {
+                  const rows = COUNTRY_IDS.flatMap(id => {
+                    const p = parPays[id];
+                    if (!p || p.status === "offline") return [];
+                    return [[NAMES[id], p.total_lots ?? 0, p.conforme_lots ?? 0, p.alerte_lots ?? 0, p.perime_lots ?? 0]];
+                  });
+                  downloadCSV("inventaire_lots.csv",
+                    ["Pays", "Total lots", "Conformes", "En alerte", "Périmés"],
+                    rows
+                  );
+                }}
+              >
+                Inventaire lots (.csv)
+              </Button>
+
+              <Button
+                icon={<DownloadOutlined />}
+                style={{ justifyContent: "flex-start", color: "#1677ff", borderColor: "#1677ff55" }}
+                onClick={() => {
+                  if (!alertes.length) { message.info("Aucune alerte à exporter."); return; }
+                  const rows = alertes.map(a => [
+                    a.type_alerte, a.message, a.pays_nom || a.country_id,
+                    a.date_alerte ? new Date(a.date_alerte).toLocaleString("fr-FR") : "",
+                    a.statut,
+                  ]);
+                  downloadCSV("historique_alertes.csv",
+                    ["Type", "Message", "Pays", "Date", "Statut"],
+                    rows
+                  );
+                }}
+              >
+                Historique alertes (.csv)
+              </Button>
+
+              <Button
+                icon={<FileExcelOutlined />}
+                style={{ justifyContent: "flex-start", color: "#52c41a", borderColor: "#52c41a55" }}
+                onClick={() => message.info("Export Excel : fonctionnalité prévue dans une prochaine version.")}
+              >
+                Inventaire lots (.xlsx)
+              </Button>
+
+              <Button
+                icon={<FileExcelOutlined />}
+                style={{ justifyContent: "flex-start", color: "#52c41a", borderColor: "#52c41a55" }}
+                onClick={() => message.info("Export Excel : fonctionnalité prévue dans une prochaine version.")}
+              >
+                Alertes (.xlsx)
+              </Button>
+
+              <Button
+                icon={<FilePdfOutlined />}
+                style={{ justifyContent: "flex-start", color: "#ff4d4f", borderColor: "#ff4d4f55" }}
+                onClick={() => message.info("Export PDF : fonctionnalité prévue dans une prochaine version.")}
+              >
+                Rapport qualité (.pdf)
+              </Button>
+
+              <Button
+                icon={<FilePdfOutlined />}
+                style={{ justifyContent: "flex-start", color: "#ff4d4f", borderColor: "#ff4d4f55" }}
+                onClick={() => message.info("Export PDF : fonctionnalité prévue dans une prochaine version.")}
+              >
+                Rapport températures (.pdf)
+              </Button>
             </div>
           </Card>
         </Col>

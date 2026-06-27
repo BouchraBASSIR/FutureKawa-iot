@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu } from "antd";
+import { Menu, Modal } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import SidebarLogo from "../SidebarLogo/SidebarLogo";
@@ -28,15 +28,64 @@ const ROUTE_MAP = {
 const Sidebar = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { logout } = useAuth();
+  const { logout, hasRole } = useAuth();
 
   const path = location.pathname.startsWith("/lots/") ? "/lots" : location.pathname;
   const selectedKey = ROUTE_MAP[path] ?? "dashboard";
 
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    Modal.confirm({
+      title: "Se déconnecter",
+      content: "Voulez-vous vraiment mettre fin à votre session ?",
+      okText: "Déconnecter",
+      cancelText: "Annuler",
+      okButtonProps: { danger: true },
+      onOk: () => {
+        logout();
+        navigate("/login");
+      },
+    });
   };
+
+  const canSeeReports  = hasRole("admin", "responsable_pays");
+  const canSeeStorage  = hasRole("admin", "responsable_pays");
+
+  const baseItems = [
+    {
+      key: "dashboard",
+      icon: <MenuIcon src={homeIcon} alt="accueil" />,
+      label: "Dashboard",
+      onClick: () => navigate("/"),
+    },
+    {
+      key: "lots",
+      icon: <MenuIcon src={lotsIcon} alt="lots" />,
+      label: "Lots",
+      onClick: () => navigate("/lots"),
+    },
+    {
+      key: "alerts",
+      icon: <MenuIcon src={warningIcon} alt="alertes" />,
+      label: "Alertes",
+      onClick: () => navigate("/alerts"),
+    },
+  ];
+
+  const managementItems = (canSeeStorage || canSeeReports) ? [
+    { type: "divider" },
+    ...(canSeeStorage ? [{
+      key: "storage",
+      icon: <MenuIcon src={warehouseIcon} alt="entrepôts" />,
+      label: "Entrepôts",
+      onClick: () => navigate("/storage"),
+    }] : []),
+    ...(canSeeReports ? [{
+      key: "reports",
+      icon: <MenuIcon src={reportsIcon} alt="rapports" />,
+      label: "Rapports",
+      onClick: () => navigate("/reports"),
+    }] : []),
+  ] : [];
 
   return (
     <div className="sidebar">
@@ -47,39 +96,7 @@ const Sidebar = () => {
         theme="dark"
         mode="inline"
         selectedKeys={[selectedKey]}
-        items={[
-          {
-            key: "dashboard",
-            icon: <MenuIcon src={homeIcon} alt="accueil" />,
-            label: "Dashboard",
-            onClick: () => navigate("/"),
-          },
-          {
-            key: "lots",
-            icon: <MenuIcon src={lotsIcon} alt="lots" />,
-            label: "Lots",
-            onClick: () => navigate("/lots"),
-          },
-          {
-            key: "alerts",
-            icon: <MenuIcon src={warningIcon} alt="alertes" />,
-            label: "Alertes",
-            onClick: () => navigate("/alerts"),
-          },
-          { type: "divider" },
-          {
-            key: "storage",
-            icon: <MenuIcon src={warehouseIcon} alt="entrepôts" />,
-            label: "Entrepôts",
-            onClick: () => navigate("/storage"),
-          },
-          {
-            key: "reports",
-            icon: <MenuIcon src={reportsIcon} alt="rapports" />,
-            label: "Rapports",
-            onClick: () => navigate("/reports"),
-          },
-        ]}
+        items={[...baseItems, ...managementItems]}
       />
 
       <div className="sidebar-bottom" onClick={handleLogout}>

@@ -1,5 +1,5 @@
 """
-FutureKawa — Modèles SQLAlchemy pour le backend central.
+FutureKawa - Modèles SQLAlchemy pour le backend central.
 Gère uniquement les utilisateurs, rôles et leurs accès pays/entrepôts.
 Les données IoT (lots, mesures, alertes) restent dans les backends pays.
 """
@@ -48,7 +48,7 @@ class UserAccess(Base):
     """
     Accès d'un utilisateur à un pays, une exploitation et/ou un entrepôt.
     Les IDs exploitation/entrepôt sont des références souples vers les backends pays
-    (pas de FK cross-base — on stocke les identifiants entiers tels quels).
+    (pas de FK cross-base - on stocke les identifiants entiers tels quels).
     """
     __tablename__ = "user_access"
 

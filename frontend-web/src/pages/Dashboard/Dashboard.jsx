@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext, useMemo } from "react";
-import { Row, Col, Card, Table, Tag, Typography, Select, Spin } from "antd";
+import { Row, Col, Card, Table, Tag, Typography, Select, Spin, Alert } from "antd";
+// Tag gardé pour les colonnes du tableau des alertes
 import {
   ThunderboltOutlined, WarningOutlined, DashboardOutlined, ExperimentOutlined,
 } from "@ant-design/icons";
@@ -9,6 +10,8 @@ import {
 import WorldMap from "../../components/layout/WorldMap/WorldMap";
 import { dashboardService } from "../../services/dashboard.service";
 import { CountryContext } from "../../context/country";
+import { useAuth } from "../../context/AuthContext";
+import ScopeBadge from "../../components/common/ScopeBadge";
 import "./Dashboard.scss";
 
 const { Text } = Typography;
@@ -104,14 +107,49 @@ const mergeChartData = (datasets) => {
   });
 };
 
+const COUNTRY_OPTIONS = [
+  { label: "🇧🇷 Brésil",   value: "bresil"   },
+  { label: "🇪🇨 Équateur", value: "equateur" },
+  { label: "🇨🇴 Colombie", value: "colombie" },
+];
+
 // ── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const { selectedCountry, setSelectedCountry } = useContext(CountryContext);
+  const { hasRole, profile } = useAuth();
   const [loading, setLoading]  = useState(true);
   const [kpi, setKpi]          = useState(null);
   const [alerts, setAlerts]    = useState([]);
   const [chartData, setChart]  = useState([]);
   const [activeCountries, setActiveCountries] = useState([]);
+
+  // Liste des pays accessibles selon le rôle.
+  // null = pas de restriction (admin), sinon tableau des pays du JWT.
+  const allowedPays = useMemo(() => {
+    if (hasRole("admin")) return null;
+    const unique = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
+    return unique.length ? unique : null;
+  }, [hasRole, profile]);
+
+  // Entrepôt assigné (pour l'affichage du ScopeBadge)
+  const scopeAccess = allowedPays?.length === 1
+    ? profile?.accesses?.find(a => a.pays === allowedPays[0])
+    : null;
+
+  // Verrouille le pays sélectionné dès qu'on connaît les accès
+  useEffect(() => {
+    if (allowedPays?.length === 1 && selectedCountry !== allowedPays[0]) {
+      setSelectedCountry(allowedPays[0]);
+    }
+  }, [allowedPays]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Options du sélecteur filtrées selon les accès
+  const selectOptions = useMemo(() => {
+    if (allowedPays === null) {
+      return [{ label: "Tous les pays", value: "all" }, ...COUNTRY_OPTIONS];
+    }
+    return COUNTRY_OPTIONS.filter(o => allowedPays.includes(o.value));
+  }, [allowedPays]);
 
   useEffect(() => {
     const load = async () => {
@@ -199,20 +237,32 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      {/* Sélecteur pays */}
-      <Row style={{ marginBottom: 20 }}>
+      {/* Alerte visuelle quand le pays sélectionné est hors-ligne */}
+      {isFiltered && kpiSource?.status === "offline" && (
+        <Alert
+          type="warning"
+          showIcon
+          message={`Le backend ${selectedCountry} est hors-ligne - les données affichées ne sont pas à jour.`}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
+      {/* Sélecteur pays ou badge de périmètre */}
+      <Row style={{ marginBottom: 20 }} align="middle">
         <Col xs={24} sm={8}>
-          <Select
-            value={selectedCountry}
-            onChange={(value) => setSelectedCountry(value)}
-            style={{ width: "100%" }}
-            options={[
-              { label: "Tous les pays", value: "all" },
-              { label: "🇧🇷 Brésil",    value: "bresil"   },
-              { label: "🇪🇨 Équateur",  value: "equateur" },
-              { label: "🇨🇴 Colombie",  value: "colombie" },
-            ]}
-          />
+          {allowedPays?.length === 1 ? (
+            <ScopeBadge
+              pays={allowedPays[0]}
+              entrepotId={scopeAccess?.entrepot_id}
+            />
+          ) : (
+            <Select
+              value={selectedCountry}
+              onChange={(value) => setSelectedCountry(value)}
+              style={{ width: "100%" }}
+              options={selectOptions}
+            />
+          )}
         </Col>
       </Row>
 
@@ -259,7 +309,7 @@ const Dashboard = () => {
       <Row gutter={[16, 16]} className="dashboard-row" style={{ marginTop: 20 }}>
         <Col xs={24} xl={13}>
           <Card title="Zones d'approvisionnement" variant="borderless" className="map-card">
-            <WorldMap />
+            <WorldMap allowedPays={allowedPays} />
             <div className="map-legend" style={{ marginTop: 12 }}>
               {legendEntries.map(([id, data]) => (
                 <div key={id} className="map-legend-item">
@@ -304,7 +354,7 @@ const Dashboard = () => {
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={Math.max(0, Math.floor(chartData.length / 6) - 1)} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} unit="°C" />
                 <Tooltip />
                 <Legend iconType="circle" iconSize={8} />
                 {displayCountries.map(id => (
@@ -321,7 +371,7 @@ const Dashboard = () => {
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={Math.max(0, Math.floor(chartData.length / 6) - 1)} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} unit="%" />
                 <Tooltip />
                 <Legend iconType="circle" iconSize={8} />
                 {displayCountries.map(id => (

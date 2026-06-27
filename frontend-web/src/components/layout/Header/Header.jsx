@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BellOutlined, SettingOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Dropdown } from "antd";
+import { Dropdown, Badge } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
+import { dashboardService } from "../../../services/dashboard.service";
 import ProfileModal from "../ProfileModal/ProfileModal";
 import SettingsModal from "../SettingsModal/SettingsModal";
 import "./Header.scss";
@@ -19,14 +20,45 @@ const PAGE_TITLES = {
 const HeaderBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, logout } = useAuth();
+  const { profile, logout, hasRole } = useAuth();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [alertCount, setAlertCount] = useState(0);
+
+  // Pays accessibles selon le rôle (null = admin = pas de restriction)
+  const allowedPays = useMemo(() => {
+    if (hasRole("admin")) return null;
+    const unique = [...new Set((profile?.accesses ?? []).map(a => a.pays))];
+    return unique.length ? unique : null;
+  }, [hasRole, profile]);
+
+  useEffect(() => {
+    dashboardService.getAlertsCount()
+      .then(data => {
+        if (!data) return;
+        if (!allowedPays) {
+          // Admin : total consolidé toutes countries
+          setAlertCount(data.non_lues ?? 0);
+        } else {
+          // Utilisateur restreint : somme uniquement sur ses pays autorisés
+          const count = allowedPays.reduce(
+            (sum, pays) => sum + (data.par_pays?.[pays]?.non_lues ?? 0),
+            0
+          );
+          setAlertCount(count);
+        }
+      })
+      .catch(() => {});
+  }, [location.pathname, allowedPays]);
 
   const rawPath = location.pathname.startsWith("/lots/") ? "/lots" : location.pathname;
   const title = PAGE_TITLES[rawPath] ?? "FutureKawa";
+
+  useEffect(() => {
+    document.title = `${title} - FutureKawa`;
+  }, [title]);
 
   const handleLogout = () => {
     setDropdownOpen(false);
@@ -44,9 +76,9 @@ const HeaderBar = () => {
       <div className="user-dropdown-header">
         <div className="user-dropdown-avatar">{profile?.initials ?? "?"}</div>
         <div className="user-dropdown-info">
-          <span className="user-dropdown-name">{profile?.name ?? "—"}</span>
-          <span className="user-dropdown-email">{profile?.email ?? "—"}</span>
-          <span className="user-dropdown-role">{profile?.role ?? "—"}</span>
+          <span className="user-dropdown-name">{profile?.name ?? "-"}</span>
+          <span className="user-dropdown-email">{profile?.email ?? "-"}</span>
+          <span className="user-dropdown-role">{profile?.roles?.join(", ") ?? "-"}</span>
         </div>
       </div>
 
@@ -77,9 +109,10 @@ const HeaderBar = () => {
         {/* RIGHT */}
         <div className="header-right">
 
-          <div className="icon-wrapper">
-            <BellOutlined className="icon" />
-            <span className="badge">3</span>
+          <div className="icon-wrapper" onClick={() => navigate("/alerts")} style={{ cursor: "pointer" }}>
+            <Badge count={alertCount} size="small" offset={[-2, 2]}>
+              <BellOutlined className="icon" />
+            </Badge>
           </div>
 
           <div className="icon-wrapper" onClick={() => setSettingsOpen(true)}>

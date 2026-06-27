@@ -1,36 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Input, Form, message } from "antd";
+import React from "react";
+import { Modal, Descriptions, Tag } from "antd";
 import { useAuth } from "../../../context/AuthContext";
 import "./ProfileModal.scss";
 
+const ROLE_LABELS = {
+  admin:            { label: "Administrateur", color: "red"    },
+  responsable_pays: { label: "Responsable pays", color: "blue" },
+  operateur:        { label: "Opérateur",        color: "green" },
+};
+
 const ProfileModal = ({ open, onClose }) => {
-  const { profile, updateProfile } = useAuth();
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    if (open && profile) {
-      form.setFieldsValue({ name: profile.name, email: profile.email });
-    }
-  }, [open, profile, form]);
-
-  const handleSave = async () => {
-    try {
-      const values = await form.validateFields();
-      updateProfile(values);
-      message.success("Profil mis à jour");
-      onClose();
-    } catch {
-      // validation errors handled by Form
-    }
-  };
+  const { profile } = useAuth();
 
   return (
     <Modal
       open={open}
       onCancel={onClose}
-      onOk={handleSave}
-      okText="Enregistrer"
-      cancelText="Annuler"
+      footer={null}
       title={null}
       width={420}
       className="profile-modal"
@@ -39,34 +25,25 @@ const ProfileModal = ({ open, onClose }) => {
         <div className="profile-modal-avatar">{profile?.initials ?? "?"}</div>
         <div>
           <div className="profile-modal-title">Mon profil</div>
-          <span className="profile-modal-role">{profile?.role}</span>
+          <div style={{ marginTop: 4 }}>
+            {(profile?.roles ?? []).map(r => {
+              const cfg = ROLE_LABELS[r] || { label: r, color: "default" };
+              return <Tag key={r} color={cfg.color}>{cfg.label}</Tag>;
+            })}
+          </div>
         </div>
       </div>
 
-      <Form form={form} layout="vertical" className="profile-modal-form">
-        <Form.Item
-          label="Nom complet"
-          name="name"
-          rules={[{ required: true, message: "Le nom est requis" }]}
-        >
-          <Input placeholder="Votre nom" />
-        </Form.Item>
-
-        <Form.Item
-          label="Adresse email"
-          name="email"
-          rules={[
-            { required: true, message: "L'email est requis" },
-            { type: "email", message: "Email invalide" },
-          ]}
-        >
-          <Input placeholder="votre@email.com" />
-        </Form.Item>
-
-        <Form.Item label="Rôle">
-          <Input value={profile?.role} disabled />
-        </Form.Item>
-      </Form>
+      <Descriptions column={1} size="small" style={{ marginTop: 16 }}
+        labelStyle={{ color: "#8c8c8c", width: 120, fontWeight: 500 }}>
+        <Descriptions.Item label="Nom complet">{profile?.name ?? "-"}</Descriptions.Item>
+        <Descriptions.Item label="Email">{profile?.email ?? "-"}</Descriptions.Item>
+        <Descriptions.Item label="Accès pays">
+          {(profile?.accesses ?? []).length > 0
+            ? profile.accesses.map(a => a.pays).join(", ")
+            : "Accès global"}
+        </Descriptions.Item>
+      </Descriptions>
     </Modal>
   );
 };
