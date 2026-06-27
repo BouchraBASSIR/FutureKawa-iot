@@ -18,3 +18,10 @@ Thumbs.db
 npm-debug.log*
 
 venv/
+
+# Jest
+coverage/
+
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/

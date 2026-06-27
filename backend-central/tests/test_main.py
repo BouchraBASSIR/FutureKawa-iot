@@ -2,10 +2,10 @@
 Tests du backend central FutureKawa.
 
 Stratégie :
+- La dépendance get_current_user est surchargée via app.dependency_overrides
+  pour éviter toute vérification JWT dans les tests.
 - Tous les appels HTTP sortants vers les backends pays sont mockés via
   unittest.mock.patch("main.fetch_from_country").
-- On teste le comportement du central indépendamment de la disponibilité
-  des backends pays (tests unitaires d'intégration interne).
 - Les tests asynchrones sont gérés automatiquement par pytest-asyncio
   (asyncio_mode = auto dans pytest.ini).
 """
@@ -18,7 +18,26 @@ from unittest.mock import AsyncMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
-from main import app, COUNTRIES  # noqa: E402
+from main import app, COUNTRIES       # noqa: E402
+from auth import get_current_user     # noqa: E402
+
+# ── Utilisateur mock (admin = accès total) ────────────────────────────────────
+
+MOCK_ADMIN = {
+    "sub": "1",
+    "email": "admin@futurekawa.com",
+    "roles": ["admin"],
+    "accesses": [],
+}
+
+# ── Fixture : surcharge auth pour tous les tests ──────────────────────────────
+
+@pytest.fixture(autouse=True)
+def override_auth():
+    app.dependency_overrides[get_current_user] = lambda: MOCK_ADMIN
+    yield
+    app.dependency_overrides.clear()
+
 
 # ── Client de test ASGI ───────────────────────────────────────────────────────
 
@@ -53,6 +72,11 @@ LOT_EQ_01 = {
 MESURES_SAMPLE = [
     {"id_mesure": 1, "temperature": 28.5, "humidite": 54.0, "date_mesure": "2026-06-01T10:00:00", "id_capteur": 1},
     {"id_mesure": 2, "temperature": 29.1, "humidite": 55.5, "date_mesure": "2026-06-01T11:00:00", "id_capteur": 1},
+]
+
+CAPTEURS_SAMPLE = [
+    {"id_capteur": 1, "reference": "CAP-001", "type_capteur": "temperature_humidite", "statut": "actif", "id_entrepot": 1},
+    {"id_capteur": 2, "reference": "CAP-002", "type_capteur": "temperature_humidite", "statut": "inactif", "id_entrepot": 2},
 ]
 
 ALERTES_SAMPLE = {
@@ -112,7 +136,7 @@ async def test_home():
     assert r.status_code == 200
     data = r.json()
     assert data["status"] == "online"
-    assert "bresil" in data["configured_countries"]
+    assert "bresil"   in data["configured_countries"]
     assert "equateur" in data["configured_countries"]
     assert "colombie" in data["configured_countries"]
 
@@ -140,7 +164,7 @@ async def test_list_countries_all_online(mock_fetch):
 @patch("main.fetch_from_country")
 async def test_list_countries_one_offline(mock_fetch):
     mock_fetch.side_effect = make_side_effect({
-        ("bresil",   "/"): {"status": "online"},
+        ("bresil", "/"): {"status": "online"},
         # equateur et colombie → None (offline)
     })
     async with make_client() as ac:
@@ -170,12 +194,11 @@ async def test_stocks_fifo_order(mock_fetch):
     lots = r.json()
     assert len(lots) == 3
     # LOT_EQ_01 (2025-12) doit être en premier
-    assert lots[0]["id_lot"] == "LOT-EQ-01"
+    assert lots[0]["id_lot"]    == "LOT-EQ-01"
     assert lots[0]["country_id"] == "equateur"
-    assert lots[0]["pays_nom"] == COUNTRIES["equateur"]["name"]
-    # Ensuite LOT-BR-01 (2026-01) puis LOT-BR-02 (2026-03)
-    assert lots[1]["id_lot"] == "LOT-BR-01"
-    assert lots[2]["id_lot"] == "LOT-BR-02"
+    assert lots[0]["pays_nom"]   == COUNTRIES["equateur"]["name"]
+    assert lots[1]["id_lot"]    == "LOT-BR-01"
+    assert lots[2]["id_lot"]    == "LOT-BR-02"
 
 
 @patch("main.fetch_from_country")
@@ -226,13 +249,13 @@ async def test_get_lot_found(mock_fetch):
         r = await ac.get("/api/central/stocks/bresil/LOT-BR-01")
     assert r.status_code == 200
     data = r.json()
-    assert data["id_lot"] == "LOT-BR-01"
+    assert data["id_lot"]    == "LOT-BR-01"
     assert data["country_id"] == "bresil"
 
 
 @patch("main.fetch_from_country")
 async def test_get_lot_not_found(mock_fetch):
-    mock_fetch.side_effect = make_side_effect({})  # backend retourne None
+    mock_fetch.side_effect = make_side_effect({})
     async with make_client() as ac:
         r = await ac.get("/api/central/stocks/bresil/LOT-INCONNU")
     assert r.status_code == 404
@@ -277,7 +300,7 @@ async def test_get_lot_mesures_backend_down(mock_fetch):
 async def test_create_lot_success(mock_fetch):
     nouveau_lot = {**LOT_BR_01, "id_lot": "LOT-BR-99"}
     mock_fetch.side_effect = make_side_effect({
-        ("bresil", "/lots"): nouveau_lot,  # POST /lots retourne le lot créé
+        ("bresil", "/lots"): nouveau_lot,
     })
     payload = {"id_lot": "LOT-BR-99", "id_entrepot": 1, "id_utilisateur": 1}
     async with make_client() as ac:
@@ -316,9 +339,9 @@ async def test_get_alertes_consolidated(mock_fetch):
     assert r.status_code == 200
     data = r.json()
     assert len(data["alertes_mesures"]) == 1
-    assert len(data["alertes_lots"]) == 1
+    assert len(data["alertes_lots"])    == 1
     assert data["alertes_mesures"][0]["country_id"] == "bresil"
-    assert data["alertes_lots"][0]["country_id"] == "bresil"
+    assert data["alertes_lots"][0]["country_id"]    == "bresil"
 
 
 @patch("main.fetch_from_country")
@@ -360,10 +383,11 @@ async def test_get_alertes_sorted_newest_first(mock_fetch):
 
 @patch("main.fetch_from_country")
 async def test_get_alertes_count(mock_fetch):
+    empty = {"total_mesures": 0, "non_lues_mesures": 0, "total_lots": 0, "non_lues_lots": 0, "total": 0, "non_lues": 0}
     mock_fetch.side_effect = make_side_effect({
         ("bresil",   "/alertes/count"): ALERTES_COUNT_SAMPLE,
-        ("equateur", "/alertes/count"): {"total_mesures": 0, "non_lues_mesures": 0, "total_lots": 0, "non_lues_lots": 0, "total": 0, "non_lues": 0},
-        ("colombie", "/alertes/count"): {"total_mesures": 0, "non_lues_mesures": 0, "total_lots": 0, "non_lues_lots": 0, "total": 0, "non_lues": 0},
+        ("equateur", "/alertes/count"): empty,
+        ("colombie", "/alertes/count"): empty,
     })
     async with make_client() as ac:
         r = await ac.get("/api/central/alertes/count")
@@ -376,7 +400,7 @@ async def test_get_alertes_count(mock_fetch):
 
 @patch("main.fetch_from_country")
 async def test_alertes_count_offline_country(mock_fetch):
-    """Un pays offline ne doit pas casser le total - juste signaler offline."""
+    """Un pays offline ne doit pas casser le total."""
     mock_fetch.side_effect = make_side_effect({
         ("bresil", "/alertes/count"): ALERTES_COUNT_SAMPLE,
         # equateur et colombie offline → None
@@ -419,8 +443,8 @@ async def test_dashboard_offline_country(mock_fetch):
         r = await ac.get("/api/central/dashboard")
     assert r.status_code == 200
     data = r.json()
-    assert data["total_lots"] == DASHBOARD_SAMPLE["total_lots"]
-    assert data["par_pays"]["equateur"] == {"status": "offline"}
+    assert data["total_lots"]              == DASHBOARD_SAMPLE["total_lots"]
+    assert data["par_pays"]["equateur"]    == {"status": "offline"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -483,5 +507,49 @@ async def test_get_config(mock_fetch):
         r = await ac.get("/api/central/bresil/config")
     assert r.status_code == 200
     data = r.json()
-    assert data["pays"] == "bresil"
+    assert data["pays"]        == "bresil"
     assert data["temp_ideale"] == 29.0
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 11. Routes ajoutées — capteurs et mesures par entrepôt
+# ══════════════════════════════════════════════════════════════════════════════
+
+@patch("main.fetch_from_country")
+async def test_get_capteurs(mock_fetch):
+    mock_fetch.side_effect = make_side_effect({
+        ("equateur", "/capteurs"): CAPTEURS_SAMPLE,
+    })
+    async with make_client() as ac:
+        r = await ac.get("/api/central/equateur/capteurs")
+    assert r.status_code == 200
+    capteurs = r.json()
+    assert len(capteurs) == 2
+    assert capteurs[0]["reference"] == "CAP-001"
+
+
+@patch("main.fetch_from_country")
+async def test_get_capteurs_backend_down(mock_fetch):
+    mock_fetch.side_effect = make_side_effect({})
+    async with make_client() as ac:
+        r = await ac.get("/api/central/bresil/capteurs")
+    assert r.status_code == 502
+
+
+@patch("main.fetch_from_country")
+async def test_get_mesures_par_entrepot(mock_fetch):
+    mock_fetch.side_effect = make_side_effect({
+        ("bresil", "/mesures/par-entrepot/1"): MESURES_SAMPLE,
+    })
+    async with make_client() as ac:
+        r = await ac.get("/api/central/bresil/entrepots/1/mesures")
+    assert r.status_code == 200
+    assert len(r.json()) == 2
+
+
+@patch("main.fetch_from_country")
+async def test_get_mesures_par_entrepot_backend_down(mock_fetch):
+    mock_fetch.side_effect = make_side_effect({})
+    async with make_client() as ac:
+        r = await ac.get("/api/central/equateur/entrepots/99/mesures")
+    assert r.status_code == 502

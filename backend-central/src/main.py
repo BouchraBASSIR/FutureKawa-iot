@@ -171,6 +171,7 @@ async def get_consolidated_stocks(
     """
     allowed = _get_allowed_countries(current_user)
     if country:
+        _require_country(country)  # 400 si pays inconnu
         if country not in allowed:
             raise HTTPException(status_code=403, detail=f"Accès au pays '{country}' refusé.")
         targets = [country]
