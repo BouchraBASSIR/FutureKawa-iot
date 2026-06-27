@@ -55,12 +55,7 @@ L'intégralité des documents requis par le client et les grilles d'évaluation 
 
 ## 4. Démarrage Rapide
 
-### Option 1 : Démarrage local direct (Sans Docker)
-Pour lancer rapidement un environnement local de démonstration basé sur SQLite :
-1.  Double-cliquez sur le fichier **`lanceur_sans_docker.bat`** à la racine de ce répertoire.
-2.  Le script va automatiquement configurer les environnements virtuels Python, installer les dépendances, et lancer l'API pays locale ainsi que le simulateur de capteurs IoT.
-
-### Option 2 : Orchestration globale (Avec Docker Compose)
+### Orchestration globale (Avec Docker Compose)
 Pour lancer l'intégralité de l'écosystème distribué (4 conteneurs PostgreSQL, 3 brokers Mosquitto, 4 APIs FastAPI et le portail React) :
 1.  Naviguez dans le répertoire de la solution logicielle :
     ```bash
