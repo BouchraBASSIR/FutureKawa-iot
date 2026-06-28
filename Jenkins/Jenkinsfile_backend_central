@@ -293,26 +293,32 @@ pipeline {
                     string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')
                 ]) {
                     sh '''
-                        # 1. Création d'une config Mosquitto dans un volume nommé
-                        docker volume create futurekawa_mosquitto_config 2>/dev/null || true
+                        set -e
+
+                        echo "1. Vérification Docker"
+                        docker version
+                        docker compose version
+
+                        echo "2. Création de la configuration Mosquitto dans un volume nommé"
+                        docker volume create futurekawa_mosquitto_config || true
 
                         docker run --rm \
-                            -v futurekawa_mosquitto_config:/config \
-                            alpine sh -c "echo 'listener 1883' > /config/mosquitto.conf && echo 'allow_anonymous true' >> /config/mosquitto.conf"
+                        -v futurekawa_mosquitto_config:/config \
+                        alpine sh -c "echo 'listener 1883' > /config/mosquitto.conf && echo 'allow_anonymous true' >> /config/mosquitto.conf"
 
-                        # 2. Authentification Docker Hub
+                        echo "3. Connexion Docker Hub"
                         echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
 
-                        # 3. Pull de l'image backend central publiée
-                        docker pull ${DOCKERHUB_REPO}:latest
+                        echo "4. Pull de l'image backend central"
+                        docker pull "$DOCKERHUB_REPO:latest"
 
                         docker logout
 
-                        # 4. Arrêt propre de l'ancienne stack
-                        docker compose down --remove-orphans 2>/dev/null || true
+                        echo "5. Nettoyage de l'ancienne stack"
+                        docker compose down --remove-orphans || true
                         sleep 5
 
-                        # 5. Déploiement avec variables nécessaires
+                        echo "6. Déploiement de la stack backend central"
                         CENTRAL_DB_USER="futurekawa" \
                         CENTRAL_DB_PASSWORD="futurekawa123" \
                         ADMIN_EMAIL="admin@futurekawa.com" \
@@ -333,14 +339,12 @@ pipeline {
                         SENDER_PASSWORD="dummy" \
                         docker compose up -d --build backend-central
 
-                        # 6. Health check du backend central
-                        echo "Attente du démarrage du backend central..."
-
+                        echo "7. Health check backend central"
                         MAX=12
                         COUNT=0
 
-                        until [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-central-ci-cd-backend-central-1 2>/dev/null)" = "true" ] || [ $COUNT -eq $MAX ]; do
-                            echo "  En attente... $((COUNT+1))/$MAX"
+                        until [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-central-ci-cd-backend-central-1 2>/dev/null)" = "true" ] || [ "$COUNT" -eq "$MAX" ]; do
+                            echo "En attente... $((COUNT+1))/$MAX"
                             sleep 10
                             COUNT=$((COUNT+1))
                         done
