@@ -281,16 +281,79 @@ pipeline {
         // Déploiement local
         // ====================================================================
         stage('Deploy Local') {
-
             steps {
+                echo '====== DEPLOY LOCAL : Backend Central ======'
 
-                sh '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DH_USER',
+                        passwordVariable: 'DH_PASS'
+                    ),
+                    string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET')
+                ]) {
+                    sh '''
+                        # 1. Création d'une config Mosquitto dans un volume nommé
+                        docker volume create futurekawa_mosquitto_config 2>/dev/null || true
 
-                    # Redéploie le backend central
+                        docker run --rm \
+                            -v futurekawa_mosquitto_config:/config \
+                            alpine sh -c "echo 'listener 1883' > /config/mosquitto.conf && echo 'allow_anonymous true' >> /config/mosquitto.conf"
 
-                    docker compose up -d --build backend-central
+                        # 2. Authentification Docker Hub
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
 
-                '''
+                        # 3. Pull de l'image backend central publiée
+                        docker pull ${DOCKERHUB_REPO}:latest
+
+                        docker logout
+
+                        # 4. Arrêt propre de l'ancienne stack
+                        docker compose down --remove-orphans 2>/dev/null || true
+                        sleep 5
+
+                        # 5. Déploiement avec variables nécessaires
+                        CENTRAL_DB_USER="futurekawa" \
+                        CENTRAL_DB_PASSWORD="futurekawa123" \
+                        ADMIN_EMAIL="admin@futurekawa.com" \
+                        ADMIN_PASSWORD="admin123" \
+                        JWT_SECRET="$JWT_SECRET" \
+                        BRESIL_DB_USER="futurekawa" \
+                        BRESIL_DB_PASSWORD="futurekawa123" \
+                        BRESIL_DB_NAME="futurekawa_bresil" \
+                        EQUATEUR_DB_USER="futurekawa" \
+                        EQUATEUR_DB_PASSWORD="futurekawa123" \
+                        EQUATEUR_DB_NAME="futurekawa_equateur" \
+                        COLOMBIE_DB_USER="futurekawa" \
+                        COLOMBIE_DB_PASSWORD="futurekawa123" \
+                        COLOMBIE_DB_NAME="futurekawa_colombie" \
+                        SMTP_SERVER="smtp.gmail.com" \
+                        SMTP_PORT="587" \
+                        SENDER_EMAIL="dummy@futurekawa.com" \
+                        SENDER_PASSWORD="dummy" \
+                        docker compose up -d --build backend-central
+
+                        # 6. Health check du backend central
+                        echo "Attente du démarrage du backend central..."
+
+                        MAX=12
+                        COUNT=0
+
+                        until [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-central-ci-cd-backend-central-1 2>/dev/null)" = "true" ] || [ $COUNT -eq $MAX ]; do
+                            echo "  En attente... $((COUNT+1))/$MAX"
+                            sleep 10
+                            COUNT=$((COUNT+1))
+                        done
+
+                        if [ "$(docker inspect -f '{{.State.Running}}' futurekawa-backend-central-ci-cd-backend-central-1 2>/dev/null)" = "true" ]; then
+                            echo "Backend central opérationnel."
+                        else
+                            echo "Le backend central n'a pas démarré. Logs :"
+                            docker compose logs --tail=80 backend-central
+                            exit 1
+                        fi
+                    '''
+                }
             }
         }
     }
