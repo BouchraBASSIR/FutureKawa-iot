@@ -39,7 +39,7 @@ services:
       COUNTRY_EQUATEUR_URL: http://backend-pays-equateur:8000
       COUNTRY_COLOMBIE_URL: http://backend-pays-colombie:8000
     ports:
-      - "9000:9000"
+      - "9001:9000"
     depends_on:
       postgres-central:
         condition: service_healthy
